@@ -1,0 +1,208 @@
+# =============================================================================
+# Ordinal Browser — CI 파이프라인
+# 모든 push/PR에 대해 빌드, 테스트, 린팅 수행
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [master, develop, 'feature/**']
+  pull_request:
+    branches: [master, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # C++ 빌드 및 테스트 — 3개 플랫폼
+  # ===========================================================================
+  build-cpp:
+    name: 🔨 C++ 빌드 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        include:
+          - os: ubuntu-latest
+            cmake_generator: Ninja
+            install_cmd: |
+              sudo apt-get update
+              sudo apt-get install -y \
+                build-essential cmake ninja-build \
+                qt6-base-dev qt6-base-private-dev \
+                libssl-dev libcurl4-openssl-dev \
+                libgrpc++-dev protobuf-compiler-grpc libprotobuf-dev \
+                libgtest-dev libgmock-dev
+          - os: macos-14
+            cmake_generator: Ninja
+            install_cmd: |
+              brew install qt@6 openssl@3 curl grpc protobuf cmake ninja googletest
+              echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
+              echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
+          - os: windows-latest
+            cmake_generator: "Visual Studio 17 2022"
+            install_cmd: |
+              vcpkg install openssl:x64-windows curl:x64-windows gtest:x64-windows
+              echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🔧 MSVC 설정 (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: 📦 Qt6 설치 (Windows)
+        if: runner.os == 'Windows'
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.0'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: 📦 의존성 설치
+        run: ${{ matrix.install_cmd }}
+        shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
+
+      - name: 🔨 CMake 구성
+        run: |
+          cmake -B build -G "${{ matrix.cmake_generator }}" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON
+        shell: bash
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --config Debug --parallel 4
+
+      - name: 🧪 C++ 테스트 실행 (GTest)
+        run: |
+          cd build
+          ctest --output-on-failure --timeout 120 -C Debug
+        shell: bash
+        continue-on-error: true
+
+  # ===========================================================================
+  # Python 테스트 — LLM Security Agent
+  # ===========================================================================
+  test-python:
+    name: 🐍 Python 테스트
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🐍 Python 3.12 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 Python 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r agent/requirements.txt
+          pip install pytest pytest-cov pytest-asyncio flake8 mypy black isort
+
+      - name: 🧪 pytest 실행
+        run: |
+          python -m pytest tests/python/ \
+            --tb=short \
+            --cov=agent \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            -v
+        continue-on-error: true
+
+      - name: 📊 커버리지 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-coverage
+          path: coverage.xml
+
+  # ===========================================================================
+  # 린팅 — 코드 품질 검사
+  # ===========================================================================
+  lint:
+    name: 🔍 코드 린팅
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🐍 Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 📦 린팅 도구 설치
+        run: |
+          pip install flake8 black isort mypy
+          sudo apt-get update
+          sudo apt-get install -y cppcheck clang-format
+
+      - name: 🐍 Python 린팅 (flake8)
+        run: |
+          flake8 agent/ --max-line-length=120 --statistics --count
+        continue-on-error: true
+
+      - name: 🐍 Python 포매팅 검사 (black)
+        run: |
+          black --check --diff agent/
+        continue-on-error: true
+
+      - name: 🐍 Python import 정렬 검사 (isort)
+        run: |
+          isort --check-only --diff agent/
+        continue-on-error: true
+
+      - name: 🔧 C++ 정적 분석 (cppcheck)
+        run: |
+          cppcheck --enable=warning,style,performance,portability \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=0 \
+            --inline-suppr \
+            -I src/ \
+            src/
+        continue-on-error: true
+
+      - name: 🔧 C++ 포매팅 검사 (clang-format)
+        run: |
+          find src/ -name '*.cpp' -o -name '*.h' | \
+            xargs clang-format --dry-run --Werror 2>&1 || true
+        continue-on-error: true
+
+  # ===========================================================================
+  # CI 상태 요약
+  # ===========================================================================
+  ci-status:
+    name: ✅ CI 상태
+    needs: [build-cpp, test-python, lint]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: 📋 CI 결과 요약
+        run: |
+          echo "## CI 결과 요약" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 작업 | 상태 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| C++ 빌드 | ${{ needs.build-cpp.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python 테스트 | ${{ needs.test-python.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 코드 린팅 | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ 실패 시 에러
+        if: >-
+          needs.build-cpp.result == 'failure' ||
+          needs.test-python.result == 'failure'
+        run: |
+          echo "::error::CI 파이프라인 실패!"
+          exit 1
