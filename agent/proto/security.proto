@@ -1,0 +1,245 @@
+// Ordinal Browser 보안 에이전트 — gRPC 서비스 정의
+// ================================================
+//
+// C++ 브라우저 코어와 Python LLM 에이전트 간의
+// 통신 프로토콜을 정의합니다.
+//
+// 컴파일:
+//   python -m grpc_tools.protoc \
+//     --proto_path=agent/proto \
+//     --python_out=agent/proto \
+//     --grpc_python_out=agent/proto \
+//     agent/proto/security.proto
+
+syntax = "proto3";
+
+package ordinal.security;
+
+option java_package = "com.ordinal.security";
+option java_multiple_files = true;
+option go_package = "ordinal/security";
+
+// ============================================================
+// 열거형 정의
+// ============================================================
+
+// 위협 수준
+enum ThreatLevel {
+  THREAT_LEVEL_SAFE = 0;        // 안전
+  THREAT_LEVEL_LOW = 1;         // 낮음 — 주의 필요
+  THREAT_LEVEL_MEDIUM = 2;      // 중간 — 경고
+  THREAT_LEVEL_HIGH = 3;        // 높음 — 위험
+  THREAT_LEVEL_CRITICAL = 4;    // 치명적 — 즉시 차단
+}
+
+// 위협 유형
+enum ThreatType {
+  THREAT_TYPE_PHISHING = 0;     // 피싱 사이트
+  THREAT_TYPE_MALWARE = 1;      // 악성코드/악성 스크립트
+  THREAT_TYPE_XSS = 2;          // 크로스 사이트 스크립팅
+  THREAT_TYPE_PRIVACY = 3;      // 프라이버시 침해 (추적기/핑거프린팅)
+  THREAT_TYPE_CERT = 4;         // 인증서 문제
+}
+
+// ============================================================
+// 요청/응답 메시지
+// ============================================================
+
+// URL 분석 요청
+message AnalysisRequest {
+  string url = 1;                           // 분석 대상 URL
+  string html_content = 2;                  // HTML 소스 코드 (선택)
+  string script_code = 3;                   // JavaScript 코드 (선택)
+  bool use_llm = 4;                         // LLM 심층 분석 사용 여부
+  map<string, string> metadata = 5;         // 추가 메타데이터
+}
+
+// 분석 응답
+message AnalysisResponse {
+  bool success = 1;                         // 분석 성공 여부
+  string error_message = 2;                 // 오류 메시지 (실패 시)
+  ThreatReport threat_report = 3;           // 위협 보고서
+  double analysis_time_ms = 4;              // 분석 소요 시간 (ms)
+  bool cached = 5;                          // 캐시된 결과 여부
+}
+
+// ============================================================
+// 위협 보고서
+// ============================================================
+
+// 통합 위협 보고서
+message ThreatReport {
+  string url = 1;                           // 분석된 URL
+  ThreatLevel overall_level = 2;            // 전체 위협 수준
+  double overall_score = 3;                 // 전체 위험 점수 (0.0~1.0)
+  repeated ThreatDetail details = 4;        // 개별 위협 상세 목록
+  repeated string recommendations = 5;     // 권장 조치 목록
+  double analysis_time_ms = 6;              // 분석 소요 시간
+  double timestamp = 7;                     // 분석 시각 (Unix epoch)
+}
+
+// 개별 위협 상세
+message ThreatDetail {
+  ThreatType threat_type = 1;               // 위협 유형
+  ThreatLevel threat_level = 2;             // 위협 수준
+  double confidence = 3;                    // 신뢰도 (0.0~1.0)
+  string description = 4;                   // 위협 설명
+  repeated string indicators = 5;           // 탐지 지표 목록
+  map<string, string> metadata = 6;         // 추가 메타데이터
+}
+
+// ============================================================
+// 상세 보고서
+// ============================================================
+
+// 피싱 분석 상세
+message PhishingDetail {
+  double url_score = 1;                     // URL 기반 점수 (0~1)
+  double content_score = 2;                 // 콘텐츠 기반 점수 (0~1)
+  double domain_similarity = 3;             // 유명 도메인 유사도
+  string similar_domain = 4;                // 가장 유사한 합법 도메인
+  bool has_homoglyphs = 5;                  // 호모글리프 탐지 여부
+  bool is_typosquatting = 6;                // 타이포스쿼팅 여부
+  bool has_login_form = 7;                  // 로그인 폼 존재 여부
+  int32 password_field_count = 8;           // 비밀번호 필드 수
+  double external_resource_ratio = 9;       // 외부 리소스 비율
+  bool favicon_mismatch = 10;              // 파비콘 출처 불일치
+  repeated string phishing_keywords = 11;  // 탐지된 피싱 키워드
+}
+
+// 악성코드 분석 상세
+message MalwareDetail {
+  string malware_type = 1;                  // 악성코드 유형
+  double pattern_score = 2;                 // 패턴 매칭 점수
+  double obfuscation_score = 3;             // 난독화 점수
+  int32 eval_count = 4;                     // eval() 사용 횟수
+  int32 encoded_string_count = 5;           // 인코딩 문자열 수
+  bool has_crypto_miner = 6;                // 크립토마이너 탐지
+  bool has_keylogger = 7;                   // 키로거 탐지
+  bool has_data_exfil = 8;                  // 데이터 유출 탐지
+  double variable_entropy = 9;              // 변수명 엔트로피
+  double code_density = 10;                // 코드 밀도
+  string behavior_prediction = 11;         // LLM 행동 예측
+}
+
+// 프라이버시 분석 상세
+message PrivacyDetail {
+  int32 tracker_count = 1;                  // 탐지된 추적기 수
+  repeated TrackerInfo trackers = 2;        // 추적기 목록
+  repeated string fingerprint_apis = 3;     // 핑거프린팅 API 목록
+  double fingerprint_score = 4;             // 핑거프린팅 점수
+  int32 third_party_domain_count = 5;       // 써드파티 도메인 수
+  int32 pixel_tracker_count = 6;            // 픽셀 추적기 수
+  double data_exfil_risk = 7;               // 데이터 유출 위험 점수
+  repeated string third_party_domains = 8;  // 써드파티 도메인 목록
+}
+
+// 추적기 정보
+message TrackerInfo {
+  string domain = 1;                        // 추적기 도메인
+  string category = 2;                      // 카테고리 (analytics/ads/social)
+  string company = 3;                       // 운영 회사
+  int32 occurrence_count = 4;               // 발견 횟수
+}
+
+// 보안 점수
+message SecurityScore {
+  int32 overall = 1;                        // 전체 점수 (0~100, 높을수록 안전)
+  int32 phishing_safety = 2;                // 피싱 안전 점수
+  int32 malware_safety = 3;                 // 악성코드 안전 점수
+  int32 privacy_safety = 4;                 // 프라이버시 안전 점수
+  int32 cert_safety = 5;                    // 인증서 안전 점수
+  string grade = 6;                         // 등급 (A+, A, B, C, D, F)
+}
+
+// 페이지 종합 보안 보고서
+message PageSecurityReport {
+  string url = 1;                           // 페이지 URL
+  string title = 2;                         // 페이지 제목
+  int64 content_size = 3;                   // 콘텐츠 크기 (bytes)
+  ThreatReport threat_report = 4;           // 위협 보고서
+  SecurityScore security_score = 5;         // 보안 점수
+  PhishingDetail phishing_detail = 6;       // 피싱 분석 상세
+  MalwareDetail malware_detail = 7;         // 악성코드 분석 상세
+  PrivacyDetail privacy_detail = 8;         // 프라이버시 분석 상세
+  repeated string blocked_urls = 9;         // 차단된 URL 목록
+  double analysis_time_ms = 10;            // 분석 소요 시간
+  double timestamp = 11;                   // 분석 시각
+}
+
+// ============================================================
+// 집계 보고서 요청/응답
+// ============================================================
+
+// 집계 보고서 요청
+message SecurityReportRequest {
+  int32 limit = 1;                          // 최대 결과 수
+  ThreatLevel min_level = 2;                // 최소 위협 수준
+  double since_timestamp = 3;               // 이후 시점
+}
+
+// 집계 보고서 응답
+message SecurityReportResponse {
+  repeated ThreatReport reports = 1;        // 보고서 목록
+  int32 total_analyzed = 2;                 // 총 분석 수
+  int32 safe_count = 3;                     // 안전 판정 수
+  int32 threat_count = 4;                   // 위협 탐지 수
+  int32 cache_size = 5;                     // 캐시 항목 수
+}
+
+// 스트리밍 요청
+message StreamRequest {
+  ThreatLevel min_level = 1;                // 최소 위협 수준
+  repeated ThreatType threat_types = 2;     // 관심 위협 유형
+}
+
+// 헬스 체크
+message HealthCheckRequest {
+  string service = 1;                       // 서비스 이름 (선택)
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;                 // 서빙 상태
+  bool agent_initialized = 2;              // 에이전트 초기화 상태
+  int32 cache_size = 3;                     // 캐시 크기
+  int32 total_reports = 4;                  // 총 보고서 수
+  int32 active_streams = 5;                 // 활성 스트림 수
+  string version = 6;                       // 에이전트 버전
+  double timestamp = 7;                     // 서버 시각
+}
+
+// ============================================================
+// gRPC 서비스 정의
+// ============================================================
+
+// 보안 분석 서비스
+service SecurityService {
+  // URL 보안 분석
+  // 주어진 URL의 피싱, 악성코드 위험을 분석합니다.
+  rpc AnalyzeUrl(AnalysisRequest) returns (AnalysisResponse);
+
+  // JavaScript 코드 분석
+  // 스크립트 코드의 악성 패턴을 분석합니다.
+  rpc AnalyzeScript(AnalysisRequest) returns (AnalysisResponse);
+
+  // 웹 페이지 종합 분석
+  // URL + HTML을 종합하여 보안 보고서를 생성합니다.
+  rpc AnalyzePage(AnalysisRequest) returns (PageSecurityReport);
+
+  // 집계 보안 보고서 조회
+  // 최근 분석 결과를 집계하여 반환합니다.
+  rpc GetSecurityReport(SecurityReportRequest) returns (SecurityReportResponse);
+
+  // 실시간 위협 스트리밍
+  // 새 위협이 탐지될 때마다 클라이언트에 전송합니다.
+  rpc StreamThreats(StreamRequest) returns (stream ThreatReport);
+
+  // 헬스 체크
+  // 서버 상태를 확인합니다.
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
