@@ -1,0 +1,598 @@
+# =============================================================================
+# Ordinal Browser — 멀티 플랫폼 빌드 & 릴리즈 워크플로우
+# 태그 푸시(v*) 또는 수동 실행 시 6개 플랫폼/아키텍처 동시 빌드
+# =============================================================================
+name: Build & Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: '릴리즈 태그 (예: v1.0.0)'
+        required: false
+        default: ''
+
+# 동시 실행 방지 — 같은 태그에 대해 중복 빌드 차단
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  QT_VERSION: '6.7.0'
+  V8_VERSION: '12.4'
+  CMAKE_BUILD_TYPE: Release
+  ORDINAL_VERSION: ${{ github.ref_name }}
+
+permissions:
+  contents: write
+
+jobs:
+  # ===========================================================================
+  # Windows x64 빌드 — MSVC + Qt6 + V8 + NSIS 설치 파일
+  # ===========================================================================
+  build-windows-x64:
+    name: 🪟 Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 MSVC 개발 환경 설정
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: 📦 Qt6 설치
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          modules: 'qtnetworkauth qtwebsockets'
+          cache: true
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드
+        shell: pwsh
+        run: |
+          # V8 프리빌트 바이너리를 GitHub Releases에서 다운로드
+          $V8_URL = "https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-win-x64.zip"
+          New-Item -ItemType Directory -Force -Path third_party/v8
+          try {
+            Invoke-WebRequest -Uri $V8_URL -OutFile v8-win-x64.zip -TimeoutSec 120
+            Expand-Archive -Path v8-win-x64.zip -DestinationPath third_party/v8 -Force
+          } catch {
+            Write-Warning "V8 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+          }
+
+      - name: 📦 의존성 설치 (vcpkg)
+        shell: pwsh
+        run: |
+          # vcpkg로 OpenSSL, curl, gRPC 설치
+          vcpkg install openssl:x64-windows curl:x64-windows grpc:x64-windows protobuf:x64-windows
+          echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+      - name: 🔨 CMake 구성
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A x64 ^
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} ^
+            -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% ^
+            -DCMAKE_PREFIX_PATH=%Qt6_DIR% ^
+            -DV8_ROOT=third_party/v8 ^
+            -DCMAKE_INSTALL_PREFIX=install
+        shell: cmd
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --config ${{ env.CMAKE_BUILD_TYPE }} --parallel %NUMBER_OF_PROCESSORS%
+        shell: cmd
+
+      - name: 📋 Qt6 DLL 배포 (windeployqt)
+        shell: pwsh
+        run: |
+          # 빌드된 실행 파일에 Qt6 DLL 번들링
+          $exe = Get-ChildItem -Path build/Release -Filter "ordinal-browser.exe" -Recurse | Select-Object -First 1
+          if ($exe) {
+            windeployqt --release --no-translations --no-opengl-sw $exe.FullName
+          }
+
+      - name: 📦 NSIS 설치 파일 생성
+        shell: pwsh
+        run: |
+          # NSIS 설치
+          choco install nsis -y
+          # 빌드 아티팩트를 패키징 디렉토리로 복사
+          New-Item -ItemType Directory -Force -Path packaging/windows/dist
+          Copy-Item -Recurse build/Release/* packaging/windows/dist/
+          # V8 바이너리 복사 (존재하는 경우)
+          if (Test-Path "third_party/v8/lib") {
+            Copy-Item third_party/v8/lib/*.dll packaging/windows/dist/ -ErrorAction SilentlyContinue
+          }
+          # NSIS 스크립트 실행
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=x64 /DVERSION=${{ env.ORDINAL_VERSION }} packaging/windows/installer.nsi
+
+      - name: 📤 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-windows-x64-setup
+          path: packaging/windows/ordinal-browser-*-x64-setup.exe
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # Windows ARM64 빌드 — 크로스 컴파일
+  # ===========================================================================
+  build-windows-arm64:
+    name: 🪟 Windows ARM64
+    runs-on: windows-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 MSVC 개발 환경 설정 (ARM64 크로스 컴파일)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
+
+      - name: 📦 Qt6 설치 (ARM64)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_arm64
+          modules: 'qtnetworkauth qtwebsockets'
+          cache: true
+
+      - name: 📦 의존성 설치 (vcpkg ARM64)
+        shell: pwsh
+        run: |
+          vcpkg install openssl:arm64-windows curl:arm64-windows
+          echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드 (ARM64)
+        shell: pwsh
+        run: |
+          $V8_URL = "https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-win-arm64.zip"
+          New-Item -ItemType Directory -Force -Path third_party/v8
+          try {
+            Invoke-WebRequest -Uri $V8_URL -OutFile v8-win-arm64.zip -TimeoutSec 120
+            Expand-Archive -Path v8-win-arm64.zip -DestinationPath third_party/v8 -Force
+          } catch {
+            Write-Warning "V8 ARM64 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+          }
+
+      - name: 🔨 CMake 구성 (ARM64 크로스 컴파일)
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A ARM64 ^
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} ^
+            -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% ^
+            -DCMAKE_PREFIX_PATH=%Qt6_DIR% ^
+            -DV8_ROOT=third_party/v8 ^
+            -DCMAKE_INSTALL_PREFIX=install ^
+            -DVCPKG_TARGET_TRIPLET=arm64-windows
+        shell: cmd
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --config ${{ env.CMAKE_BUILD_TYPE }} --parallel %NUMBER_OF_PROCESSORS%
+        shell: cmd
+
+      - name: 📋 Qt6 DLL 배포
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build/Release -Filter "ordinal-browser.exe" -Recurse | Select-Object -First 1
+          if ($exe) {
+            windeployqt --release --no-translations --no-opengl-sw $exe.FullName
+          }
+
+      - name: 📦 NSIS 설치 파일 생성 (ARM64)
+        shell: pwsh
+        run: |
+          choco install nsis -y
+          New-Item -ItemType Directory -Force -Path packaging/windows/dist
+          Copy-Item -Recurse build/Release/* packaging/windows/dist/
+          if (Test-Path "third_party/v8/lib") {
+            Copy-Item third_party/v8/lib/*.dll packaging/windows/dist/ -ErrorAction SilentlyContinue
+          }
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=arm64 /DVERSION=${{ env.ORDINAL_VERSION }} packaging/windows/installer.nsi
+
+      - name: 📤 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-windows-arm64-setup
+          path: packaging/windows/ordinal-browser-*-arm64-setup.exe
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # macOS ARM64 (Apple Silicon) 빌드
+  # ===========================================================================
+  build-macos-arm64:
+    name: 🍎 macOS ARM64 (Apple Silicon)
+    runs-on: macos-14
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Homebrew 의존성 설치
+        run: |
+          brew install qt@6 openssl@3 curl grpc protobuf cmake ninja
+          echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드 (macOS ARM64)
+        run: |
+          V8_URL="https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-macos-arm64.tar.gz"
+          mkdir -p third_party/v8
+          curl -fsSL "$V8_URL" -o v8-macos-arm64.tar.gz && \
+            tar xzf v8-macos-arm64.tar.gz -C third_party/v8 || \
+            echo "⚠️ V8 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+
+      - name: 🔨 CMake 구성
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH="$Qt6_DIR" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" \
+            -DV8_ROOT=third_party/v8 \
+            -DCMAKE_INSTALL_PREFIX=install
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --parallel $(sysctl -n hw.ncpu)
+
+      - name: 📦 DMG 생성
+        run: |
+          chmod +x packaging/macos/create_dmg.sh
+          ./packaging/macos/create_dmg.sh \
+            --app-path build/ordinal-browser.app \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch arm64 \
+            --qt-dir "$Qt6_DIR/../.."
+
+      - name: 📤 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-macos-arm64
+          path: packaging/macos/ordinal-browser-*-arm64.dmg
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # macOS x64 (Intel) 빌드
+  # ===========================================================================
+  build-macos-x64:
+    name: 🍎 macOS x64 (Intel)
+    runs-on: macos-13
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Homebrew 의존성 설치
+        run: |
+          brew install qt@6 openssl@3 curl grpc protobuf cmake ninja
+          echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드 (macOS x64)
+        run: |
+          V8_URL="https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-macos-x64.tar.gz"
+          mkdir -p third_party/v8
+          curl -fsSL "$V8_URL" -o v8-macos-x64.tar.gz && \
+            tar xzf v8-macos-x64.tar.gz -C third_party/v8 || \
+            echo "⚠️ V8 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+
+      - name: 🔨 CMake 구성
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH="$Qt6_DIR" \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" \
+            -DV8_ROOT=third_party/v8 \
+            -DCMAKE_INSTALL_PREFIX=install
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --parallel $(sysctl -n hw.ncpu)
+
+      - name: 📦 DMG 생성
+        run: |
+          chmod +x packaging/macos/create_dmg.sh
+          ./packaging/macos/create_dmg.sh \
+            --app-path build/ordinal-browser.app \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch x64 \
+            --qt-dir "$Qt6_DIR/../.."
+
+      - name: 📤 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-macos-x64
+          path: packaging/macos/ordinal-browser-*-x64.dmg
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # Linux x64 빌드 — .deb + AppImage
+  # ===========================================================================
+  build-linux-x64:
+    name: 🐧 Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 시스템 의존성 설치
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            qt6-base-dev qt6-base-private-dev libqt6network6 \
+            libqt6widgets6 libqt6gui6 libqt6core6 qt6-tools-dev \
+            libssl-dev libcurl4-openssl-dev \
+            libgrpc++-dev protobuf-compiler-grpc libprotobuf-dev \
+            fuse libfuse2 \
+            dpkg-dev debhelper \
+            desktop-file-utils appstream
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드 (Linux x64)
+        run: |
+          V8_URL="https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-linux-x64.tar.gz"
+          mkdir -p third_party/v8
+          curl -fsSL "$V8_URL" -o v8-linux-x64.tar.gz && \
+            tar xzf v8-linux-x64.tar.gz -C third_party/v8 || \
+            echo "⚠️ V8 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+
+      - name: 🔨 CMake 구성
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DV8_ROOT=third_party/v8 \
+            -DCMAKE_INSTALL_PREFIX=/usr
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --parallel $(nproc)
+
+      - name: 📦 .deb 패키지 생성
+        run: |
+          chmod +x packaging/linux/create_deb.sh
+          ./packaging/linux/create_deb.sh \
+            --build-dir build \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch amd64
+
+      - name: 📦 AppImage 생성
+        run: |
+          chmod +x packaging/linux/create_appimage.sh
+          ./packaging/linux/create_appimage.sh \
+            --build-dir build \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch x86_64
+
+      - name: 📤 .deb 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-linux-x64-deb
+          path: packaging/linux/ordinal-browser-*-amd64.deb
+          if-no-files-found: warn
+
+      - name: 📤 AppImage 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-linux-x64-appimage
+          path: packaging/linux/ordinal-browser-*-x86_64.AppImage
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # Linux ARM64 빌드 — aarch64 크로스 컴파일
+  # ===========================================================================
+  build-linux-arm64:
+    name: 🐧 Linux ARM64
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 크로스 컴파일 도구체인 설치
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            crossbuild-essential-arm64 \
+            fuse libfuse2 \
+            dpkg-dev debhelper \
+            qemu-user-static
+
+      - name: 📦 ARM64 sysroot 및 Qt6 설치
+        run: |
+          # ARM64 sysroot 생성
+          sudo dpkg --add-architecture arm64
+          # ARM64 소스 추가 (Ubuntu의 ports 아카이브)
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs) main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/arm64.list
+          sudo apt-get update || true
+          sudo apt-get install -y \
+            libssl-dev:arm64 libcurl4-openssl-dev:arm64 || true
+
+      - name: 📦 Qt6 설치 (ARM64 크로스 빌드용)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: linux
+          target: desktop
+          arch: gcc_arm64
+          modules: 'qtnetworkauth qtwebsockets'
+          cache: true
+
+      - name: 📦 V8 프리빌트 바이너리 다운로드 (Linux ARM64)
+        run: |
+          V8_URL="https://github.com/nicedoc/aspect/releases/download/v8-${{ env.V8_VERSION }}/v8-linux-arm64.tar.gz"
+          mkdir -p third_party/v8
+          curl -fsSL "$V8_URL" -o v8-linux-arm64.tar.gz && \
+            tar xzf v8-linux-arm64.tar.gz -C third_party/v8 || \
+            echo "⚠️ V8 프리빌트 다운로드 실패 — V8 없이 빌드 진행"
+
+      - name: 🔨 CMake 구성 (ARM64 크로스 컴파일)
+        run: |
+          # 크로스 컴파일 툴체인 파일 생성
+          cat > toolchain-aarch64.cmake << 'EOF'
+          set(CMAKE_SYSTEM_NAME Linux)
+          set(CMAKE_SYSTEM_PROCESSOR aarch64)
+          set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+          set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+          set(CMAKE_FIND_ROOT_PATH /usr/aarch64-linux-gnu)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+          set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+          EOF
+
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DCMAKE_TOOLCHAIN_FILE=toolchain-aarch64.cmake \
+            -DCMAKE_PREFIX_PATH="$Qt6_DIR" \
+            -DV8_ROOT=third_party/v8 \
+            -DCMAKE_INSTALL_PREFIX=/usr
+
+      - name: 🏗️ 빌드
+        run: cmake --build build --parallel $(nproc)
+
+      - name: 📦 .deb 패키지 생성 (ARM64)
+        run: |
+          chmod +x packaging/linux/create_deb.sh
+          ./packaging/linux/create_deb.sh \
+            --build-dir build \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch arm64
+
+      - name: 📦 AppImage 생성 (ARM64)
+        run: |
+          chmod +x packaging/linux/create_appimage.sh
+          ./packaging/linux/create_appimage.sh \
+            --build-dir build \
+            --version "${{ env.ORDINAL_VERSION }}" \
+            --arch aarch64
+
+      - name: 📤 .deb 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-linux-arm64-deb
+          path: packaging/linux/ordinal-browser-*-arm64.deb
+          if-no-files-found: warn
+
+      - name: 📤 AppImage 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinal-browser-linux-arm64-appimage
+          path: packaging/linux/ordinal-browser-*-aarch64.AppImage
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # 릴리즈 — 모든 빌드 완료 후 GitHub Release 생성 + 아티팩트 업로드
+  # ===========================================================================
+  release:
+    name: 🚀 GitHub Release 생성
+    needs:
+      - build-windows-x64
+      - build-windows-arm64
+      - build-macos-arm64
+      - build-macos-x64
+      - build-linux-x64
+      - build-linux-arm64
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: 📥 소스 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📥 모든 빌드 아티팩트 다운로드
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: 📋 아티팩트 목록 확인
+        run: |
+          echo "=== 다운로드된 아티팩트 ==="
+          find artifacts/ -type f | sort
+          echo "=========================="
+
+      - name: 📋 릴리즈 노트 생성
+        run: |
+          # CHANGELOG.md에서 현재 버전 릴리즈 노트 추출
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+
+          cat > release_notes.md << 'NOTES'
+          # Ordinal Browser ${{ github.ref_name }} 🚀
+
+          ## V8 기반 보안 브라우저 + LLM Security Agent
+
+          ### 🔒 보안 기능
+          - 피싱 탐지 (URL 분석 + 콘텐츠 분석 + 타이포스쿼팅)
+          - XSS/Injection 공격 탐지
+          - 악성 JavaScript 분석 (V8 기반)
+          - 개인정보 추적기 차단
+          - SSL/TLS 인증서 검증
+
+          ### 🤖 AI 기능
+          - LLM 기반 보안 분석 (GPT-4 + 로컬 모델 폴백)
+          - 실시간 위협 스트리밍
+          - 페이지 보안 리포트 자동 생성
+
+          ### 🌐 브라우저 기능
+          - V8 JavaScript 엔진
+          - HTML5/CSS3 파싱 + 렌더링
+          - 멀티탭 브라우징
+          - Qt6 네이티브 UI
+          - 개발자 도구 (콘솔, 네트워크, 보안 감사, DOM 트리)
+
+          ### 📦 지원 플랫폼
+          | OS | Architecture | Format |
+          |---|---|---|
+          | Windows | x64 | .exe (NSIS) |
+          | Windows | ARM64 | .exe (NSIS) |
+          | macOS | Apple Silicon (arm64) | .dmg |
+          | macOS | Intel (x64) | .dmg |
+          | Linux | x64 | .deb, .AppImage |
+          | Linux | ARM64 | .deb, .AppImage |
+
+          ### 빌드 방법
+          ```bash
+          ./scripts/setup.sh
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          ```
+
+          ### 기술 스택
+          - C++20, V8 Engine, Qt6, libcurl, OpenSSL, gRPC
+          - Python 3.12, OpenAI API, PyTorch, Transformers
+          NOTES
+
+      - name: 🚀 GitHub Release 생성 및 아티팩트 업로드
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Ordinal Browser ${{ github.ref_name }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.deb
+            artifacts/**/*.AppImage
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
