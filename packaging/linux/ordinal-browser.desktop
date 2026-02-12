@@ -1,0 +1,23 @@
+[Desktop Entry]
+Name=Ordinal Browser
+Comment=V8-based Security Browser with LLM Agent
+GenericName=Web Browser
+Exec=ordinal-browser %u
+Icon=ordinal-browser
+Type=Application
+Categories=Network;WebBrowser;Security;
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;application/xhtml+xml;
+StartupNotify=true
+StartupWMClass=ordinal-browser
+Keywords=Browser;Web;Security;V8;LLM;
+Actions=NewWindow;Incognito;
+
+[Desktop Action NewWindow]
+Name=New Window
+Name[ko]=새 창
+Exec=ordinal-browser --new-window
+
+[Desktop Action Incognito]
+Name=Incognito Mode
+Name[ko]=시크릿 모드
+Exec=ordinal-browser --incognito

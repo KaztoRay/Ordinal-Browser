@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    Info.plist — Ordinal Browser macOS 앱 번들 메타데이터
+    
+    이 파일은 macOS가 앱을 식별하고 실행하기 위해 필요한
+    핵심 메타데이터를 정의합니다.
+-->
+<plist version="1.0">
+<dict>
+    <!-- 앱 기본 정보 -->
+    <key>CFBundleName</key>
+    <string>Ordinal Browser</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>Ordinal Browser</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.kaztoray.ordinal-browser</string>
+
+    <!-- 버전 정보 (빌드 스크립트에서 ${VERSION}으로 치환) -->
+    <key>CFBundleVersion</key>
+    <string>${VERSION}</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>${VERSION}</string>
+
+    <!-- 번들 타입 및 실행 파일 -->
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleExecutable</key>
+    <string>ordinal-browser</string>
+
+    <key>CFBundleSignature</key>
+    <string>ORDB</string>
+
+    <!-- 아이콘 파일 (Resources/ 디렉토리 내) -->
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
+
+    <!-- macOS 최소 버전 요구사항 (macOS 13 Ventura 이상) -->
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+
+    <!-- Retina 디스플레이 지원 -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <!-- macOS 네이티브 ARM 지원 -->
+    <key>LSArchitecturePriority</key>
+    <array>
+        <string>arm64</string>
+        <string>x86_64</string>
+    </array>
+
+    <!-- 앱 카테고리 (Mac App Store용) -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.productivity</string>
+
+    <!-- URL 스킴 핸들러 (http, https) -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>HTTP URL</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>http</string>
+                <string>https</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- 문서 타입 (HTML 파일 열기) -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>HTML Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.html</string>
+                <string>public.xhtml</string>
+            </array>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>html</string>
+                <string>htm</string>
+                <string>xhtml</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- 네트워크 보안 설정 (브라우저이므로 모든 연결 허용) -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+
+    <!-- 권한 설명 (사용자에게 표시) -->
+    <key>NSCameraUsageDescription</key>
+    <string>웹사이트에서 카메라 접근을 요청할 수 있습니다.</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>웹사이트에서 마이크 접근을 요청할 수 있습니다.</string>
+
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>웹사이트에서 위치 정보를 요청할 수 있습니다.</string>
+
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>파일 다운로드를 위해 다운로드 폴더에 접근합니다.</string>
+
+    <!-- 저작권 정보 -->
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026 KaztoRay. MIT License.</string>
+
+    <!-- 메인 nib/storyboard 없음 (Qt가 UI 관리) -->
+    <key>LSUIElement</key>
+    <false/>
+
+    <!-- Sparkle 자동 업데이트 피드 URL (추후 설정) -->
+    <!-- <key>SUFeedURL</key>
+    <string>https://ordinal-browser.dev/appcast.xml</string> -->
+</dict>
+</plist>
