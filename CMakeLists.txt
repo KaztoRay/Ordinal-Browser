@@ -43,6 +43,9 @@ set(V8_ROOT "${CMAKE_SOURCE_DIR}/third_party/v8" CACHE PATH "V8 엔진 루트 �
 set(V8_INCLUDE_DIR "${V8_ROOT}/include" CACHE PATH "V8 헤더 디렉토리")
 set(V8_LIB_DIR "${V8_ROOT}/out.gn/arm64.release/obj" CACHE PATH "V8 라이브러리 디렉토리")
 
+# V8 스텁 헤더는 항상 포함 (third_party/v8/include에 스텁 제공)
+# 실제 V8 라이브러리는 존재할 때만 링크
+
 # ============================================================
 # 소스 파일 수집
 # ============================================================
@@ -53,6 +56,7 @@ set(CORE_SOURCES
     src/core/browser_app.cpp
     src/core/tab.cpp
     src/core/page.cpp
+    src/core/js_bridge.cpp
 )
 
 # 네트워크 모듈
@@ -60,6 +64,7 @@ set(NETWORK_SOURCES
     src/network/http_client.cpp
     src/network/request_interceptor.cpp
     src/network/ssl_inspector.cpp
+    src/network/websocket_client.cpp
 )
 
 # 보안 모듈
@@ -87,6 +92,40 @@ set(UI_SOURCES
     src/ui/address_bar.cpp
     src/ui/security_panel.cpp
     src/ui/dev_tools_panel.cpp
+    src/ui/about_dialog.cpp
+    src/ui/settings_dialog.cpp
+    src/ui/theme_manager.cpp
+)
+
+# 데이터 모듈
+set(DATA_SOURCES
+    src/data/bookmark_manager.cpp
+    src/data/data_store.cpp
+    src/data/download_manager.cpp
+    src/data/history_manager.cpp
+    src/data/session_manager.cpp
+)
+
+# 확장 프로그램 모듈
+set(EXTENSION_SOURCES
+    src/extensions/extension.cpp
+    src/extensions/extension_manager.cpp
+    src/extensions/extension_api.cpp
+    src/extensions/content_script.cpp
+)
+
+# 광고 차단 모듈
+set(ADBLOCK_SOURCES
+    src/adblock/adblock_engine.cpp
+    src/adblock/filter_parser.cpp
+    src/adblock/cosmetic_filter.cpp
+)
+
+# 프라이버시 모듈
+set(PRIVACY_SOURCES
+    src/privacy/password_manager.cpp
+    src/privacy/cookie_manager.cpp
+    src/privacy/autofill_engine.cpp
 )
 
 # ============================================================
@@ -100,6 +139,10 @@ qt_add_executable(ordinal-browser
     ${SECURITY_SOURCES}
     ${RENDERING_SOURCES}
     ${UI_SOURCES}
+    ${DATA_SOURCES}
+    ${EXTENSION_SOURCES}
+    ${ADBLOCK_SOURCES}
+    ${PRIVACY_SOURCES}
 )
 
 # 헤더 포함 경로
@@ -119,11 +162,17 @@ target_link_libraries(ordinal-browser PRIVATE
     CURL::libcurl
 )
 
-# V8 라이브러리 (존재하는 경우에만)
-if(EXISTS "${V8_LIB_DIR}")
+# V8 라이브러리 (옵션 — 없으면 스텁 사용)
+find_library(V8_LIB v8_monolith PATHS ${V8_LIB_DIR} NO_DEFAULT_PATH)
+
+if(V8_LIB)
     target_link_directories(ordinal-browser PRIVATE ${V8_LIB_DIR})
     target_link_libraries(ordinal-browser PRIVATE v8_monolith)
     target_compile_definitions(ordinal-browser PRIVATE V8_COMPRESS_POINTERS V8_ENABLE_SANDBOX)
+    message(STATUS "V8 라이브러리 발견: ${V8_LIB}")
+else()
+    message(WARNING "V8 라이브러리 없음 — 스텁 모드로 빌드")
+    target_compile_definitions(ordinal-browser PRIVATE V8_STUB_MODE=1)
 endif()
 
 # gRPC 링크 (존재하는 경우에만)

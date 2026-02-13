@@ -16,8 +16,10 @@ cmake-build-*/
 *.swo
 *~
 
-# V8
-third_party/v8/
+# V8 (빌드 아티팩트만 무시, 스텁 헤더는 포함)
+third_party/v8/out*/
+third_party/v8/lib/
+third_party/v8/obj/
 v8/out/
 
 # Python
