@@ -11,6 +11,7 @@
 
 namespace v8 {
 
+// Forward declarations
 class Isolate;
 class Context;
 class Value;
@@ -21,6 +22,7 @@ class Function;
 class Script;
 class Message;
 class StackTrace;
+class StackFrame;
 class TryCatch;
 class Platform;
 class ArrayBuffer;
@@ -36,6 +38,11 @@ class Data;
 class Name;
 class Primitive;
 class ScriptOrigin;
+class ScriptCompiler;
+
+// ============================================================
+// Template wrappers
+// ============================================================
 
 template <class T> class Local {
 public:
@@ -45,8 +52,10 @@ public:
     T* operator*() const { return val_; }
     bool IsEmpty() const { return val_ == nullptr; }
     template <class S> Local<S> As() const { return Local<S>(); }
-    static Local<T> New(Isolate* isolate, Local<T> other) { return other; }
+    static Local<T> New(Isolate* isolate, Local<T> other) { (void)isolate; return other; }
     template <class S> operator Local<S>() const { return Local<S>(); }
+    bool operator==(const Local<T>& other) const { return val_ == other.val_; }
+    bool operator!=(const Local<T>& other) const { return val_ != other.val_; }
 private:
     T* val_;
 };
@@ -54,13 +63,17 @@ private:
 template <class T> class Global {
 public:
     Global() {}
-    Global(Isolate* isolate, Local<T> that) {}
+    Global(Isolate* isolate, Local<T> that) { (void)isolate; (void)that; }
     void Reset() {}
-    void Reset(Isolate* isolate, Local<T> other) {}
+    void Reset(Isolate* isolate, Local<T> other) { (void)isolate; (void)other; }
     bool IsEmpty() const { return true; }
-    Local<T> Get(Isolate* isolate) const { return Local<T>(); }
+    Local<T> Get(Isolate* isolate) const { (void)isolate; return Local<T>(); }
     operator Local<T>() const { return Local<T>(); }
 };
+
+template <class T> using Persistent = Global<T>;
+template <class T> using UniquePersistent = Global<T>;
+template <class T> using Eternal = Global<T>;
 
 template <class T> class MaybeLocal {
 public:
@@ -69,6 +82,7 @@ public:
     bool IsEmpty() const { return val_.IsEmpty(); }
     bool ToLocal(Local<T>* out) const { *out = val_; return !val_.IsEmpty(); }
     Local<T> ToLocalChecked() const { return val_; }
+    Local<T> FromMaybe(Local<T> default_value) const { return val_.IsEmpty() ? default_value : val_; }
 private:
     Local<T> val_;
 };
@@ -81,10 +95,19 @@ public:
     bool IsJust() const { return has_value_; }
     T FromJust() const { return value_; }
     T FromMaybe(const T& default_value) const { return has_value_ ? value_ : default_value; }
+    void Check() const {} // no-op in stub
 private:
     bool has_value_;
     T value_;
 };
+
+template <class T> inline Maybe<T> Just(T value) { return Maybe<T>(value); }
+inline Maybe<void> JustVoid() { return Maybe<void>(); }
+template <class T> inline Maybe<T> Nothing() { return Maybe<T>(); }
+
+// ============================================================
+// Scopes
+// ============================================================
 
 class HandleScope {
 public:
@@ -104,7 +127,65 @@ public:
     ~SealHandleScope() {}
 };
 
+class Locker {
+public:
+    Locker(Isolate* isolate) { (void)isolate; }
+    ~Locker() {}
+};
+
+class Unlocker {
+public:
+    Unlocker(Isolate* isolate) { (void)isolate; }
+    ~Unlocker() {}
+};
+
+// ============================================================
+// ReturnValue (must be before FunctionCallbackInfo)
+// ============================================================
+
+template <class T> class ReturnValue {
+public:
+    void Set(Local<T> value) { (void)value; }
+    void Set(double i) { (void)i; }
+    void Set(int32_t i) { (void)i; }
+    void Set(uint32_t i) { (void)i; }
+    void Set(bool value) { (void)value; }
+    void SetUndefined() {}
+    void SetNull() {}
+    void SetEmptyString() {}
+};
+
+// ============================================================
+// Callback types
+// ============================================================
+
+template <class T> class FunctionCallbackInfo {
+public:
+    int Length() const { return 0; }
+    Local<Value> operator[](int i) const { (void)i; return Local<Value>(); }
+    Isolate* GetIsolate() const { return nullptr; }
+    Local<Object> This() const { return Local<Object>(); }
+    Local<Object> Holder() const { return Local<Object>(); }
+    ReturnValue<T> GetReturnValue() const { return ReturnValue<T>(); }
+    Local<Value> Data() const { return Local<Value>(); }
+    bool IsConstructCall() const { return false; }
+};
+
+template <class T> class PropertyCallbackInfo {
+public:
+    Isolate* GetIsolate() const { return nullptr; }
+    Local<Object> This() const { return Local<Object>(); }
+    Local<Object> Holder() const { return Local<Object>(); }
+    ReturnValue<T> GetReturnValue() const { return ReturnValue<T>(); }
+};
+
+using FunctionCallback = void (*)(const FunctionCallbackInfo<Value>&);
+
 enum class NewStringType { kNormal, kInternalized };
+
+// ============================================================
+// Core types
+// ============================================================
 
 class Data {
 public:
@@ -115,6 +196,7 @@ class Value : public Data {
 public:
     bool IsUndefined() const { return true; }
     bool IsNull() const { return false; }
+    bool IsNullOrUndefined() const { return true; }
     bool IsString() const { return false; }
     bool IsObject() const { return false; }
     bool IsArray() const { return false; }
@@ -125,10 +207,22 @@ public:
     bool IsUint32() const { return false; }
     bool IsTrue() const { return false; }
     bool IsFalse() const { return false; }
-    MaybeLocal<String> ToString(Local<Context> context) const { return MaybeLocal<String>(); }
-    Maybe<double> NumberValue(Local<Context> context) const { return Maybe<double>(); }
-    Maybe<bool> BooleanValue(Isolate* isolate) const { return Maybe<bool>(); }
-    Maybe<int32_t> Int32Value(Local<Context> context) const { return Maybe<int32_t>(); }
+    bool IsExternal() const { return false; }
+    bool IsArrayBuffer() const { return false; }
+    bool IsPromise() const { return false; }
+    bool IsDate() const { return false; }
+    bool IsRegExp() const { return false; }
+    bool IsSymbol() const { return false; }
+    bool IsBigInt() const { return false; }
+    bool StrictEquals(Local<Value> that) const { (void)that; return false; }
+    bool SameValue(Local<Value> that) const { (void)that; return false; }
+    MaybeLocal<String> ToString(Local<Context> context) const { (void)context; return MaybeLocal<String>(); }
+    Maybe<double> NumberValue(Local<Context> context) const { (void)context; return Maybe<double>(); }
+    Maybe<bool> BooleanValue(Isolate* isolate) const { (void)isolate; return Maybe<bool>(); }
+    Maybe<int32_t> Int32Value(Local<Context> context) const { (void)context; return Maybe<int32_t>(); }
+    Maybe<uint32_t> Uint32Value(Local<Context> context) const { (void)context; return Maybe<uint32_t>(); }
+    Maybe<int64_t> IntegerValue(Local<Context> context) const { (void)context; return Maybe<int64_t>(); }
+    MaybeLocal<Object> ToObject(Local<Context> context) const { (void)context; return MaybeLocal<Object>(); }
 };
 
 class Primitive : public Value {};
@@ -148,8 +242,43 @@ public:
         (void)isolate; (void)data; (void)type; (void)length;
         return MaybeLocal<String>();
     }
+    template <int N>
+    static Local<String> NewFromUtf8Literal(Isolate* isolate, const char (&literal)[N],
+        NewStringType type = NewStringType::kNormal) {
+        (void)isolate; (void)literal; (void)type;
+        return Local<String>();
+    }
+    static MaybeLocal<String> NewFromOneByte(Isolate* isolate, const uint8_t* data,
+        NewStringType type = NewStringType::kNormal, int length = -1) {
+        (void)isolate; (void)data; (void)type; (void)length;
+        return MaybeLocal<String>();
+    }
+    static MaybeLocal<String> NewFromTwoByte(Isolate* isolate, const uint16_t* data,
+        NewStringType type = NewStringType::kNormal, int length = -1) {
+        (void)isolate; (void)data; (void)type; (void)length;
+        return MaybeLocal<String>();
+    }
+    static Local<String> Concat(Isolate* isolate, Local<String> left, Local<String> right) {
+        (void)isolate; (void)left; (void)right;
+        return Local<String>();
+    }
+    static Local<String> Empty(Isolate* isolate) { (void)isolate; return Local<String>(); }
     int Length() const { return 0; }
     int Utf8Length(Isolate* isolate) const { (void)isolate; return 0; }
+    int WriteUtf8(Isolate* isolate, char* buffer, int length = -1, int* nchars_ref = nullptr,
+                  int options = 0) const {
+        (void)isolate; (void)buffer; (void)length; (void)nchars_ref; (void)options;
+        return 0;
+    }
+    bool ContainsOnlyOneByte() const { return true; }
+};
+
+class Symbol : public Name {
+public:
+    static Local<Symbol> New(Isolate* isolate, Local<String> description = Local<String>()) {
+        (void)isolate; (void)description;
+        return Local<Symbol>();
+    }
 };
 
 class Object : public Value {
@@ -162,32 +291,53 @@ public:
         (void)context; (void)index; return MaybeLocal<Value>();
     }
     Maybe<bool> Set(Local<Context> context, Local<Value> key, Local<Value> value) {
-        (void)context; (void)key; (void)value; return Maybe<bool>();
+        (void)context; (void)key; (void)value; return Maybe<bool>(true);
     }
     Maybe<bool> Set(Local<Context> context, uint32_t index, Local<Value> value) {
-        (void)context; (void)index; (void)value; return Maybe<bool>();
+        (void)context; (void)index; (void)value; return Maybe<bool>(true);
     }
     Maybe<bool> Has(Local<Context> context, Local<Value> key) {
+        (void)context; (void)key; return Maybe<bool>();
+    }
+    Maybe<bool> Delete(Local<Context> context, Local<Value> key) {
         (void)context; (void)key; return Maybe<bool>();
     }
     MaybeLocal<Array> GetPropertyNames(Local<Context> context) {
         (void)context; return MaybeLocal<Array>();
     }
+    MaybeLocal<Array> GetOwnPropertyNames(Local<Context> context) {
+        (void)context; return MaybeLocal<Array>();
+    }
     Local<Value> GetPrototype() { return Local<Value>(); }
+    Maybe<bool> SetPrototype(Local<Context> context, Local<Value> prototype) {
+        (void)context; (void)prototype; return Maybe<bool>();
+    }
     void SetInternalField(int index, Local<Value> value) { (void)index; (void)value; }
     Local<Value> GetInternalField(int index) { (void)index; return Local<Value>(); }
     int InternalFieldCount() const { return 0; }
+    MaybeLocal<Value> CallAsFunction(Local<Context> context, Local<Value> recv, int argc, Local<Value> argv[]) {
+        (void)context; (void)recv; (void)argc; (void)argv; return MaybeLocal<Value>();
+    }
+    Isolate* GetIsolate() { return nullptr; }
+    Local<Context> GetCreationContext() { return Local<Context>(); }
+    Maybe<bool> DefineOwnProperty(Local<Context> context, Local<Name> key, Local<Value> value) {
+        (void)context; (void)key; (void)value; return Maybe<bool>();
+    }
 };
 
 class Array : public Object {
 public:
     static Local<Array> New(Isolate* isolate, int length = 0) { (void)isolate; (void)length; return Local<Array>(); }
+    static Local<Array> New(Isolate* isolate, Local<Value>* elements, size_t length) {
+        (void)isolate; (void)elements; (void)length; return Local<Array>();
+    }
     uint32_t Length() const { return 0; }
 };
 
 class Boolean : public Primitive {
 public:
     static Local<Boolean> New(Isolate* isolate, bool value) { (void)isolate; (void)value; return Local<Boolean>(); }
+    bool Value() const { return false; }
 };
 
 class Number : public Primitive {
@@ -213,36 +363,20 @@ public:
     uint32_t Value() const { return 0; }
 };
 
-struct FunctionCallbackInfo_Base {};
-template <class T> class FunctionCallbackInfo : public FunctionCallbackInfo_Base {
-public:
-    int Length() const { return 0; }
-    Local<Value> operator[](int i) const { (void)i; return Local<Value>(); }
-    Isolate* GetIsolate() const { return nullptr; }
-    Local<Object> This() const { return Local<Object>(); }
-    Local<Object> Holder() const { return Local<Object>(); }
-    ReturnValue<T> GetReturnValue() const { return ReturnValue<T>(); }
-};
-
-template <class T> class ReturnValue {
-public:
-    void Set(Local<T> value) { (void)value; }
-    void Set(double i) { (void)i; }
-    void Set(int32_t i) { (void)i; }
-    void Set(uint32_t i) { (void)i; }
-    void Set(bool value) { (void)value; }
-    void SetUndefined() {}
-    void SetNull() {}
-    void SetEmptyString() {}
-};
-
-using FunctionCallback = void (*)(const FunctionCallbackInfo<Value>&);
+// ============================================================
+// Script & compilation
+// ============================================================
 
 class ScriptOrigin {
 public:
     ScriptOrigin(Isolate* isolate, Local<Value> resource_name,
-                 int line_offset = 0, int column_offset = 0) {
+                 int line_offset = 0, int column_offset = 0,
+                 bool is_shared_cross_origin = false,
+                 int script_id = -1, Local<Value> source_map_url = Local<Value>(),
+                 bool is_opaque = false, bool is_wasm = false, bool is_module = false) {
         (void)isolate; (void)resource_name; (void)line_offset; (void)column_offset;
+        (void)is_shared_cross_origin; (void)script_id; (void)source_map_url;
+        (void)is_opaque; (void)is_wasm; (void)is_module;
     }
     ScriptOrigin(Local<Value> resource_name,
                  int line_offset = 0, int column_offset = 0) {
@@ -250,17 +384,57 @@ public:
     }
 };
 
+class Script {
+public:
+    static MaybeLocal<Script> Compile(Local<Context> context, Local<String> source,
+                                       ScriptOrigin* origin = nullptr) {
+        (void)context; (void)source; (void)origin;
+        return MaybeLocal<Script>();
+    }
+    MaybeLocal<Value> Run(Local<Context> context) { (void)context; return MaybeLocal<Value>(); }
+};
+
+class ScriptCompiler {
+public:
+    class Source {
+    public:
+        Source(Local<String> source_string, const ScriptOrigin& origin) {
+            (void)source_string; (void)origin;
+        }
+        Source(Local<String> source_string) { (void)source_string; }
+    };
+    static MaybeLocal<Script> Compile(Local<Context> context, Source* source) {
+        (void)context; (void)source;
+        return MaybeLocal<Script>();
+    }
+};
+
+// ============================================================
+// Function, Template, External
+// ============================================================
+
 class FunctionTemplate {
 public:
     static Local<FunctionTemplate> New(Isolate* isolate, FunctionCallback callback = nullptr,
-                                        Local<Value> data = Local<Value>()) {
-        (void)isolate; (void)callback; (void)data;
+                                        Local<Value> data = Local<Value>(),
+                                        Local<v8::Signature> signature = Local<v8::Signature>(),
+                                        int length = 0) {
+        (void)isolate; (void)callback; (void)data; (void)signature; (void)length;
         return Local<FunctionTemplate>();
     }
-    Local<Function> GetFunction(Local<Context> context) { (void)context; return Local<Function>(); }
+    MaybeLocal<Function> GetFunction(Local<Context> context) { (void)context; return MaybeLocal<Function>(); }
     Local<ObjectTemplate> InstanceTemplate() { return Local<ObjectTemplate>(); }
     Local<ObjectTemplate> PrototypeTemplate() { return Local<ObjectTemplate>(); }
     void SetClassName(Local<String> name) { (void)name; }
+    void Inherit(Local<FunctionTemplate> parent) { (void)parent; }
+};
+
+class Signature {
+public:
+    static Local<Signature> New(Isolate* isolate, Local<FunctionTemplate> receiver = Local<FunctionTemplate>()) {
+        (void)isolate; (void)receiver;
+        return Local<Signature>();
+    }
 };
 
 class ObjectTemplate {
@@ -272,13 +446,17 @@ public:
     void Set(Isolate* isolate, const char* name, Local<Data> val) { (void)isolate; (void)name; (void)val; }
     void Set(Local<Name> name, Local<Data> val) { (void)name; (void)val; }
     void SetInternalFieldCount(int count) { (void)count; }
+    MaybeLocal<Object> NewInstance(Local<Context> context) { (void)context; return MaybeLocal<Object>(); }
+    void SetAccessor(Local<String> name, void* getter, void* setter = nullptr) {
+        (void)name; (void)getter; (void)setter;
+    }
 };
 
 class Function : public Object {
 public:
     static MaybeLocal<Function> New(Local<Context> context, FunctionCallback callback,
-                                     Local<Value> data = Local<Value>()) {
-        (void)context; (void)callback; (void)data;
+                                     Local<Value> data = Local<Value>(), int length = 0) {
+        (void)context; (void)callback; (void)data; (void)length;
         return MaybeLocal<Function>();
     }
     MaybeLocal<Value> Call(Local<Context> context, Local<Value> recv, int argc, Local<Value> argv[]) {
@@ -286,16 +464,10 @@ public:
         return MaybeLocal<Value>();
     }
     Local<Value> GetName() const { return Local<Value>(); }
-};
-
-class Script {
-public:
-    static MaybeLocal<Script> Compile(Local<Context> context, Local<String> source,
-                                       ScriptOrigin* origin = nullptr) {
-        (void)context; (void)source; (void)origin;
-        return MaybeLocal<Script>();
+    void SetName(Local<String> name) { (void)name; }
+    MaybeLocal<Object> NewInstance(Local<Context> context, int argc = 0, Local<Value>* argv = nullptr) {
+        (void)context; (void)argc; (void)argv; return MaybeLocal<Object>();
     }
-    MaybeLocal<Value> Run(Local<Context> context) { (void)context; return MaybeLocal<Value>(); }
 };
 
 class External : public Value {
@@ -315,7 +487,29 @@ public:
         static Allocator* NewDefaultAllocator() { return nullptr; }
     };
     size_t ByteLength() const { return 0; }
+    static Local<ArrayBuffer> New(Isolate* isolate, size_t byte_length) {
+        (void)isolate; (void)byte_length; return Local<ArrayBuffer>();
+    }
 };
+
+class Promise : public Object {
+public:
+    class Resolver : public Object {
+    public:
+        static MaybeLocal<Resolver> New(Local<Context> context) { (void)context; return MaybeLocal<Resolver>(); }
+        Local<Promise> GetPromise() { return Local<Promise>(); }
+        Maybe<bool> Resolve(Local<Context> context, Local<Value> value) {
+            (void)context; (void)value; return Maybe<bool>();
+        }
+        Maybe<bool> Reject(Local<Context> context, Local<Value> value) {
+            (void)context; (void)value; return Maybe<bool>();
+        }
+    };
+};
+
+// ============================================================
+// Exception & error handling
+// ============================================================
 
 class Message {
 public:
@@ -339,6 +533,7 @@ public:
     void SetVerbose(bool value) { (void)value; }
     bool CanContinue() const { return true; }
     bool HasTerminated() const { return false; }
+    void ReThrow() {}
 };
 
 class StackTrace {
@@ -348,15 +543,34 @@ public:
         return Local<StackTrace>();
     }
     int GetFrameCount() const { return 0; }
+    Local<StackFrame> GetFrame(Isolate* isolate, uint32_t index) const {
+        (void)isolate; (void)index; return Local<StackFrame>();
+    }
 };
 
 class StackFrame {
 public:
     Local<String> GetScriptName() const { return Local<String>(); }
+    Local<String> GetScriptNameOrSourceURL() const { return Local<String>(); }
     Local<String> GetFunctionName() const { return Local<String>(); }
     int GetLineNumber() const { return 0; }
     int GetColumn() const { return 0; }
+    bool IsEval() const { return false; }
+    bool IsConstructor() const { return false; }
 };
+
+class Exception {
+public:
+    static Local<Value> Error(Local<String> message) { (void)message; return Local<Value>(); }
+    static Local<Value> TypeError(Local<String> message) { (void)message; return Local<Value>(); }
+    static Local<Value> RangeError(Local<String> message) { (void)message; return Local<Value>(); }
+    static Local<Value> ReferenceError(Local<String> message) { (void)message; return Local<Value>(); }
+    static Local<Value> SyntaxError(Local<String> message) { (void)message; return Local<Value>(); }
+};
+
+// ============================================================
+// Isolate & Context
+// ============================================================
 
 struct HeapStatistics {
     size_t total_heap_size() const { return 0; }
@@ -389,12 +603,14 @@ public:
         ~Scope() {}
     };
     static Isolate* New(const CreateParams& params) { (void)params; return new Isolate(); }
+    static Isolate* GetCurrent() { return nullptr; }
     void Dispose() { delete this; }
     void Enter() {}
     void Exit() {}
     Local<Context> GetCurrentContext() { return Local<Context>(); }
     void TerminateExecution() {}
     bool IsExecutionTerminating() { return false; }
+    void CancelTerminateExecution() {}
     void SetData(uint32_t slot, void* data) { (void)slot; (void)data; }
     void* GetData(uint32_t slot) { (void)slot; return nullptr; }
     void GetHeapStatistics(HeapStatistics* stats) { (void)stats; }
@@ -405,6 +621,13 @@ public:
         (void)capture; (void)frame_limit;
     }
     void AddMessageListener(void(*callback)(Local<v8::Message>, Local<Value>)) { (void)callback; }
+    void SetFatalErrorHandler(void(*that)(const char*, const char*)) { (void)that; }
+    void SetMicrotasksPolicy(int policy) { (void)policy; }
+    void PerformMicrotaskCheckpoint() {}
+    void RunMicrotasks() {}
+    bool IdleNotificationDeadline(double deadline_in_seconds) { (void)deadline_in_seconds; return true; }
+    void ThrowException(Local<Value> exception) { (void)exception; }
+    Local<Value> ThrowError(const char* message) { (void)message; return Local<Value>(); }
 };
 
 class Context {
@@ -415,27 +638,34 @@ public:
         ~Scope() {}
     };
     static Local<Context> New(Isolate* isolate, nullptr_t ext = nullptr,
-                              MaybeLocal<ObjectTemplate> templ = MaybeLocal<ObjectTemplate>()) {
-        (void)isolate; (void)ext; (void)templ;
+                              MaybeLocal<ObjectTemplate> templ = MaybeLocal<ObjectTemplate>(),
+                              MaybeLocal<Value> global_object = MaybeLocal<Value>()) {
+        (void)isolate; (void)ext; (void)templ; (void)global_object;
         return Local<Context>();
     }
     Isolate* GetIsolate() { return nullptr; }
     Local<Object> Global() { return Local<Object>(); }
+    void Enter() {}
+    void Exit() {}
 };
+
+// ============================================================
+// Platform & V8 lifecycle
+// ============================================================
 
 class Platform {
 public:
     virtual ~Platform() = default;
 };
 
-// JSON namespace
 namespace JSON {
     inline MaybeLocal<Value> Parse(Local<Context> context, Local<String> json_string) {
         (void)context; (void)json_string;
         return MaybeLocal<Value>();
     }
-    inline MaybeLocal<String> Stringify(Local<Context> context, Local<Value> json_object) {
-        (void)context; (void)json_object;
+    inline MaybeLocal<String> Stringify(Local<Context> context, Local<Value> json_object,
+                                         Local<String> gap = Local<String>()) {
+        (void)context; (void)json_object; (void)gap;
         return MaybeLocal<String>();
     }
 }
@@ -460,7 +690,10 @@ public:
     static const char* GetVersion() { return "12.4.0-stub"; }
 };
 
-// Undefined/Null helpers
+// ============================================================
+// Helpers
+// ============================================================
+
 inline Local<Primitive> Undefined(Isolate* isolate) { (void)isolate; return Local<Primitive>(); }
 inline Local<Primitive> Null(Isolate* isolate) { (void)isolate; return Local<Primitive>(); }
 inline Local<Boolean> True(Isolate* isolate) { (void)isolate; return Local<Boolean>(); }

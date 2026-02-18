@@ -12,7 +12,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # 컴파일러 경고 옵션
-add_compile_options(-Wall -Wextra -Wpedantic -Werror=return-type)
+if(MSVC)
+    add_compile_options(/W3 /wd4100 /wd4244 /wd4267)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused-parameter)
+endif()
 
 # macOS 특화 설정
 if(APPLE)
