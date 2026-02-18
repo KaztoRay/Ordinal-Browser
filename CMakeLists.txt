@@ -162,6 +162,7 @@ set(ENGINE_SOURCES
     src/engine/extension_loader.cpp
     src/engine/newtab_credentials.cpp
     src/engine/sidebar_translate.cpp
+    src/engine/userscript_devtools.cpp
 )
 
 # ============================================================
