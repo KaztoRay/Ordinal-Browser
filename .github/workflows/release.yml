@@ -87,7 +87,7 @@ jobs:
   # ===========================================================================
   build-macos-x64:
     name: 🍎 macOS x64
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - name: 📥 체크아웃
         uses: actions/checkout@v4

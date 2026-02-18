@@ -312,8 +312,11 @@ public:
 class V8 {
 public:
     static void InitializeICU() {}
+    static void InitializeICUDefaultLocation(const char* exec_path) {}
     static void InitializeExternalStartupData(const char* directory_path) {}
+    static void InitializeExternalStartupDataFromFile(const char* snapshot_blob) {}
     static void InitializePlatform(Platform* platform) {}
+    static void DisposePlatform() {}
     static bool Initialize() { return true; }
     static void ShutdownPlatform() {}
     static bool Dispose() { return true; }

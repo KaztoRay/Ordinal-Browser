@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     // ---- Qt 애플리케이션 초기화 ----
     QApplication app(argc, argv);
     QApplication::setApplicationName("Ordinal Browser");
-    QApplication::setApplicationVersion("0.1.0");
+    QApplication::setApplicationVersion("1.2.0");
     QApplication::setOrganizationName("Ordinal");
     QApplication::setOrganizationDomain("ordinal.dev");
 
@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
 
     mainWindow.show();
 
-    std::cout << "[Ordinal] Ordinal Browser v0.1.0 시작 완료" << std::endl;
+    std::cout << "[Ordinal] Ordinal Browser v1.2.0 시작 완료" << std::endl;
     std::cout << "[Ordinal] gRPC 포트: " << grpc_port
               << ", 에이전트: " << (no_agent ? "비활성화" : "활성화")
               << ", DevTools: " << (show_dev_tools ? "표시" : "숨김")
