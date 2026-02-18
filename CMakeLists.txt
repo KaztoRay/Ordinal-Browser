@@ -28,9 +28,19 @@ endif()
 # 의존성 찾기
 # ============================================================
 
-# Qt6 - UI 프레임워크
+# Qt6 - UI 프레임워크 + WebEngine (Chromium 기반)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui Network)
+find_package(Qt6 COMPONENTS WebEngineWidgets WebEngineCore WebEngineQuick QUIET)
 qt_standard_project_setup()
+
+# WebEngine 활성화 여부
+if(Qt6WebEngineWidgets_FOUND)
+    message(STATUS "✅ Qt WebEngine 발견 — Chromium 렌더링 활성화")
+    set(HAS_WEBENGINE TRUE)
+else()
+    message(WARNING "⚠️ Qt WebEngine 미발견 — 스텁 렌더링 사용")
+    set(HAS_WEBENGINE FALSE)
+endif()
 
 # OpenSSL - SSL/TLS 인증서 검증
 find_package(OpenSSL REQUIRED)
@@ -141,22 +151,37 @@ set(PRIVACY_SOURCES
     src/privacy/webrtc_guard.cpp
 )
 
+# WebEngine 모듈 (Chromium 기반 실제 브라우저)
+set(ENGINE_SOURCES
+    src/engine/web_engine.cpp
+    src/engine/browser_window.cpp
+)
+
 # ============================================================
 # 실행 파일 빌드
 # ============================================================
 
-qt_add_executable(ordinal-browser
-    src/main.cpp
-    ${CORE_SOURCES}
-    ${NETWORK_SOURCES}
-    ${SECURITY_SOURCES}
-    ${RENDERING_SOURCES}
-    ${UI_SOURCES}
-    ${DATA_SOURCES}
-    ${EXTENSION_SOURCES}
-    ${ADBLOCK_SOURCES}
-    ${PRIVACY_SOURCES}
-)
+# WebEngine 사용 시 main.cpp만 + Engine 모듈
+# 스텁 모드에서는 기존 모듈 전체 포함
+if(HAS_WEBENGINE)
+    qt_add_executable(ordinal-browser
+        src/main.cpp
+        ${ENGINE_SOURCES}
+    )
+else()
+    qt_add_executable(ordinal-browser
+        src/main.cpp
+        ${CORE_SOURCES}
+        ${NETWORK_SOURCES}
+        ${SECURITY_SOURCES}
+        ${RENDERING_SOURCES}
+        ${UI_SOURCES}
+        ${DATA_SOURCES}
+        ${EXTENSION_SOURCES}
+        ${ADBLOCK_SOURCES}
+        ${PRIVACY_SOURCES}
+    )
+endif()
 
 # 헤더 포함 경로
 target_include_directories(ordinal-browser PRIVATE
@@ -170,10 +195,29 @@ target_link_libraries(ordinal-browser PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Network
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    CURL::libcurl
 )
+
+# WebEngine 링크
+if(HAS_WEBENGINE)
+    target_link_libraries(ordinal-browser PRIVATE
+        Qt6::WebEngineWidgets
+        Qt6::WebEngineCore
+    )
+    if(Qt6WebEngineQuick_FOUND)
+        target_link_libraries(ordinal-browser PRIVATE Qt6::WebEngineQuick)
+    endif()
+    target_compile_definitions(ordinal-browser PRIVATE HAS_WEBENGINE=1)
+endif()
+
+# OpenSSL & CURL (옵션)
+find_package(OpenSSL QUIET)
+find_package(CURL QUIET)
+if(OpenSSL_FOUND)
+    target_link_libraries(ordinal-browser PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+endif()
+if(CURL_FOUND)
+    target_link_libraries(ordinal-browser PRIVATE CURL::libcurl)
+endif()
 
 # V8 라이브러리 (옵션 — 없으면 스텁 사용)
 find_library(V8_LIB v8_monolith PATHS ${V8_LIB_DIR} NO_DEFAULT_PATH)
