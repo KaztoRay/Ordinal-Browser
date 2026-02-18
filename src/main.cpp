@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QSettings>
 #include <QDir>
 #include <QStandardPaths>
 #include <QtWebEngineQuick/qtwebenginequickglobal.h>
@@ -17,6 +18,7 @@
 #include <iostream>
 
 #include "engine/browser_window.h"
+#include "engine/theme_engine.h"
 
 namespace {
 
@@ -64,6 +66,12 @@ int main(int argc, char* argv[])
     parser.process(app);
 
     installSignalHandlers();
+
+    // 테마 적용 (시스템 기본)
+    QSettings themeSettings("Ordinal", "OrdinalBrowser");
+    int themeIdx = themeSettings.value("appearance/theme", 0).toInt();
+    Ordinal::Engine::ThemeEngine::apply(
+        static_cast<Ordinal::Engine::ThemeEngine::Theme>(themeIdx), &app);
 
     // 메인 윈도우
     Ordinal::Engine::BrowserWindow window;

@@ -157,6 +157,8 @@ set(ENGINE_SOURCES
     src/engine/browser_window.cpp
     src/engine/data_manager.cpp
     src/engine/settings_page.cpp
+    src/engine/url_completer.cpp
+    src/engine/theme_engine.cpp
 )
 
 # ============================================================
