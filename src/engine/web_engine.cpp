@@ -1,4 +1,5 @@
 #include "web_engine.h"
+#include <QWebEngineCookieStore>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
@@ -110,17 +111,7 @@ void OrdinalWebPage::injectSecurityScripts()
     scripts().insert(antiFingerprint);
 }
 
-bool OrdinalWebPage::certificateError(const QWebEngineCertificateError& error)
-{
-    m_securityLevel = SecurityLevel::Dangerous;
-    emit securityLevelChanged(m_securityLevel);
-    emit OrdinalWebPage::certificateError(
-        error.url(),
-        error.description()
-    );
-    // 기본적으로 인증서 에러는 차단
-    return false;
-}
+// Qt6.5+ certificateError is handled via signal, not override
 
 void OrdinalWebPage::javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
     const QString& message, int lineNumber, const QString& sourceID)
@@ -303,25 +294,25 @@ bool OrdinalWebView::isAudioMuted() const
 
 void OrdinalWebView::setupConnections()
 {
-    connect(this, &QWebEngineView::titleChanged, this, &OrdinalWebView::titleChanged);
-    connect(this, &QWebEngineView::urlChanged, this, &OrdinalWebView::urlChanged);
-    connect(this, &QWebEngineView::iconChanged, this, &OrdinalWebView::iconChanged);
+    connect(this, &QWebEngineView::titleChanged, this, &OrdinalWebView::pageTitleChanged);
+    connect(this, &QWebEngineView::urlChanged, this, &OrdinalWebView::pageUrlChanged);
+    connect(this, &QWebEngineView::iconChanged, this, &OrdinalWebView::pageIconChanged);
 
     connect(this, &QWebEngineView::loadStarted, this, [this]() {
         m_loading = true;
         m_loadProgress = 0;
-        emit loadStarted();
+        emit pageLoadStarted();
     });
 
     connect(this, &QWebEngineView::loadProgress, this, [this](int progress) {
         m_loadProgress = progress;
-        emit OrdinalWebView::loadProgress(progress);
+        emit pageLoadProgress(progress);
     });
 
     connect(this, &QWebEngineView::loadFinished, this, [this](bool ok) {
         m_loading = false;
         m_loadProgress = ok ? 100 : 0;
-        emit loadFinished(ok);
+        emit pageLoadFinished(ok);
     });
 
     connect(m_page, &OrdinalWebPage::securityLevelChanged,

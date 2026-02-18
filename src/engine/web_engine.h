@@ -45,8 +45,6 @@ signals:
     void consoleMessage(int level, const QString& message, int line, const QString& source);
 
 protected:
-    // Certificate error handling
-    bool certificateError(const QWebEngineCertificateError& error) override;
 
     // JS console messages
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
@@ -117,12 +115,12 @@ public:
     bool isAudioMuted() const;
 
 signals:
-    void titleChanged(const QString& title);
-    void urlChanged(const QUrl& url);
-    void iconChanged(const QIcon& icon);
-    void loadStarted();
-    void loadProgress(int progress);
-    void loadFinished(bool ok);
+    void pageTitleChanged(const QString& title);
+    void pageUrlChanged(const QUrl& url);
+    void pageIconChanged(const QIcon& icon);
+    void pageLoadStarted();
+    void pageLoadProgress(int progress);
+    void pageLoadFinished(bool ok);
     void securityLevelChanged(OrdinalWebPage::SecurityLevel level);
     void newTabRequested(const QUrl& url);
     void closeRequested();

@@ -54,7 +54,7 @@ OrdinalWebView* BrowserWindow::createTab(const QUrl& url)
     m_tabWidget->setCurrentIndex(index);
 
     // 시그널 연결
-    connect(webView, &OrdinalWebView::titleChanged, this, [this, webView](const QString& title) {
+    connect(webView, &OrdinalWebView::pageTitleChanged, this, [this, webView](const QString& title) {
         int idx = m_tabWidget->indexOf(webView);
         if (idx >= 0) {
             QString shortTitle = title.left(30) + (title.length() > 30 ? "..." : "");
@@ -66,28 +66,28 @@ OrdinalWebView* BrowserWindow::createTab(const QUrl& url)
         }
     });
 
-    connect(webView, &OrdinalWebView::urlChanged, this, [this, webView](const QUrl& url) {
+    connect(webView, &OrdinalWebView::pageUrlChanged, this, [this, webView](const QUrl& url) {
         if (webView == currentWebView()) {
             updateAddressBar(url);
         }
     });
 
-    connect(webView, &OrdinalWebView::iconChanged, this, [this, webView](const QIcon& icon) {
+    connect(webView, &OrdinalWebView::pageIconChanged, this, [this, webView](const QIcon& icon) {
         int idx = m_tabWidget->indexOf(webView);
         if (idx >= 0) {
             m_tabWidget->setTabIcon(idx, icon);
         }
     });
 
-    connect(webView, &OrdinalWebView::loadStarted, this, [this, webView]() {
+    connect(webView, &OrdinalWebView::pageLoadStarted, this, [this, webView]() {
         if (webView == currentWebView()) onLoadStarted();
     });
 
-    connect(webView, &OrdinalWebView::loadProgress, this, [this, webView](int progress) {
+    connect(webView, &OrdinalWebView::pageLoadProgress, this, [this, webView](int progress) {
         if (webView == currentWebView()) onLoadProgress(progress);
     });
 
-    connect(webView, &OrdinalWebView::loadFinished, this, [this, webView](bool ok) {
+    connect(webView, &OrdinalWebView::pageLoadFinished, this, [this, webView](bool ok) {
         if (webView == currentWebView()) onLoadFinished(ok);
     });
 
