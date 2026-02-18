@@ -3,6 +3,59 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따릅니다.
 
+## [1.2.0] — 2026-02-18
+
+### 🚀 v1.2.0 — 탭 매니저, 퍼포먼스, 리더 모드, 프라이버시 강화
+
+#### 🧩 코어 엔진 강화
+- **탭 매니저** (`TabManager`) — 탭 그룹 (색상/라벨), 핀/뮤트, 자동 수면 관리, 검색, 닫힌 탭 복원 (50개 스택), 썸네일, 윈도우 간 드래그, 세션 직렬화
+- **퍼포먼스 모니터** (`PerformanceMonitor`) — 탭별 CPU/메모리/네트워크 추적, 프레임 타이밍 (p95/p99), Navigation Timing (W3C), 메모리 압력 감지, 최적화 제안
+- **미디어 컨트롤러** (`MediaController`) — 전역 재생/일시정지/볼륨, PiP, 캐스팅 (AirPlay/Chromecast), 오디오 라우팅, OS 미디어 세션 통합
+
+#### 🌐 네트워크 강화
+- **DNS 리졸버** (`DnsResolver`) — DNS-over-HTTPS (DoH), 캐싱, DNSSEC
+- **프록시 매니저** (`ProxyManager`) — HTTP/SOCKS5 프록시, PAC 스크립트, 자동 감지
+- **다운로드 가속기** (`DownloadAccelerator`) — 멀티스레드 세그먼트 다운로드 (최대 8병렬), 이어받기, 대역폭 관리, 우선순위 큐, 상태 직렬화
+
+#### 📖 UI 신규 기능
+- **리더 모드** (`ReaderMode`) — 아티클 자동 추출 (CJK 지원), 4테마 (Light/Dark/Sepia/Custom), 3폰트, TTS 연동, 인쇄 지원, 읽기 시간 추정
+
+#### 🔒 프라이버시 강화
+- **쿠키 동의 자동 처리** (`ConsentHandler`) — 10개 CMP 자동 감지/거부 (CookieBot, OneTrust, Quantcast, Didomi, Klaro, Osano, TrustArc, Complianz 등), 사이트별 화이트리스트
+- **WebRTC 보호** (`WebRtcGuard`) — 5단계 정책 (Default/PublicOnly/ForceRelay/DisableNonProxied/Disabled), IP 유출 방지 JS 인젝션, STUN 차단, ICE 후보 필터링, VPN 인터페이스 감지
+
+### 📊 프로젝트 통계
+- **파일 수:** 155+
+- **코드 라인:** 58,000+
+- **새 파일:** 14개 (C++ 12, Python 2)
+- **새 코드:** +6,000줄
+
+[1.2.0]: https://github.com/KaztoRay/Ordinal-Browser/compare/v1.1.0...v1.2.0
+
+## [1.1.0] — 2026-02-15
+
+### 🚀 v1.1.0 — 확장 프로그램, 테마, 에이전트 강화
+
+#### 🧩 확장 프로그램 시스템
+- Chrome 호환 매니페스트, V8 샌드박싱, content script, 메시지 패싱, 스토리지 API
+
+#### 📚 데이터 관리
+- 북마크 관리자, 히스토리, 다운로드 관리자, 세션 복구
+
+#### 🔑 프라이버시
+- 비밀번호 관리자 (AES-256-GCM), 쿠키 관리자, 자동입력
+
+#### 🛡️ 광고 차단
+- EasyList/uBlock 호환 필터 엔진, CSS 요소 숨김
+
+#### 🎨 테마 & 설정
+- Light/Dark/System 테마 (Catppuccin 팔레트), 6탭 설정 화면
+
+#### 🤖 에이전트 강화
+- URL 평판, CSP/SRI/CORS 분석, HTML 보안 리포트, 실시간 모니터
+
+[1.1.0]: https://github.com/KaztoRay/Ordinal-Browser/compare/v1.0.0...v1.1.0
+
 ## [1.0.0] — 2026-02-13
 
 ### 🚀 첫 번째 공식 릴리즈

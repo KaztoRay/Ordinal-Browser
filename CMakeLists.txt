@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(OrdinalBrowser VERSION 0.1.0 LANGUAGES CXX)
+project(OrdinalBrowser VERSION 1.2.0 LANGUAGES CXX)
 
 # C++20 표준 설정
 set(CMAKE_CXX_STANDARD 20)
@@ -57,6 +57,9 @@ set(CORE_SOURCES
     src/core/tab.cpp
     src/core/page.cpp
     src/core/js_bridge.cpp
+    src/core/tab_manager.cpp
+    src/core/performance_monitor.cpp
+    src/core/media_controller.cpp
 )
 
 # 네트워크 모듈
@@ -65,6 +68,9 @@ set(NETWORK_SOURCES
     src/network/request_interceptor.cpp
     src/network/ssl_inspector.cpp
     src/network/websocket_client.cpp
+    src/network/dns_resolver.cpp
+    src/network/proxy_manager.cpp
+    src/network/download_accelerator.cpp
 )
 
 # 보안 모듈
@@ -95,6 +101,7 @@ set(UI_SOURCES
     src/ui/about_dialog.cpp
     src/ui/settings_dialog.cpp
     src/ui/theme_manager.cpp
+    src/ui/reader_mode.cpp
 )
 
 # 데이터 모듈
@@ -126,6 +133,8 @@ set(PRIVACY_SOURCES
     src/privacy/password_manager.cpp
     src/privacy/cookie_manager.cpp
     src/privacy/autofill_engine.cpp
+    src/privacy/consent_handler.cpp
+    src/privacy/webrtc_guard.cpp
 )
 
 # ============================================================
