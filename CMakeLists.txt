@@ -159,6 +159,7 @@ set(ENGINE_SOURCES
     src/engine/settings_page.cpp
     src/engine/url_completer.cpp
     src/engine/theme_engine.cpp
+    src/engine/extension_loader.cpp
 )
 
 # ============================================================

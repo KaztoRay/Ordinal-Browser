@@ -9,12 +9,15 @@
 #include <QShortcut>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QMenu>
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QListWidget>
 #include <QPushButton>
 #include <QDir>
 #include <QDesktopServices>
+#include <QClipboard>
+#include <QTabBar>
 #include <iostream>
 
 namespace Ordinal {
@@ -564,6 +567,45 @@ void BrowserWindow::setupUI()
 
     connect(m_tabWidget, &QTabWidget::currentChanged, this, &BrowserWindow::onTabChanged);
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &BrowserWindow::onTabCloseRequested);
+
+    // 탭 우클릭 컨텍스트 메뉴
+    m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_tabWidget->tabBar(), &QWidget::customContextMenuRequested,
+            this, [this](const QPoint& pos) {
+        int tabIndex = m_tabWidget->tabBar()->tabAt(pos);
+        if (tabIndex < 0) return;
+
+        QMenu menu;
+        menu.addAction("새 탭", this, &BrowserWindow::onNewTab);
+        menu.addSeparator();
+        menu.addAction("새로고침", this, [this, tabIndex]() {
+            auto* view = qobject_cast<OrdinalWebView*>(m_tabWidget->widget(tabIndex));
+            if (view) view->reload();
+        });
+        menu.addAction("복제", this, [this, tabIndex]() {
+            auto* view = qobject_cast<OrdinalWebView*>(m_tabWidget->widget(tabIndex));
+            if (view) createTab(view->currentUrl());
+        });
+        menu.addSeparator();
+        menu.addAction("이 탭 닫기", this, [this, tabIndex]() { closeTab(tabIndex); });
+        menu.addAction("다른 탭 모두 닫기", this, [this, tabIndex]() {
+            for (int i = m_tabWidget->count() - 1; i >= 0; --i) {
+                if (i != tabIndex) closeTab(i);
+            }
+        });
+        menu.addAction("오른쪽 탭 모두 닫기", this, [this, tabIndex]() {
+            for (int i = m_tabWidget->count() - 1; i > tabIndex; --i) {
+                closeTab(i);
+            }
+        });
+        menu.addSeparator();
+        menu.addAction("URL 복사", this, [this, tabIndex]() {
+            auto* view = qobject_cast<OrdinalWebView*>(m_tabWidget->widget(tabIndex));
+            if (view) QApplication::clipboard()->setText(view->currentUrl().toString());
+        });
+
+        menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
+    });
 
     setCentralWidget(m_tabWidget);
 }
