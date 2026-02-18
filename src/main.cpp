@@ -24,10 +24,8 @@
 #include <string>
 
 // V8 엔진 (조건부 포함)
-#ifdef V8_COMPRESS_POINTERS
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#endif
 
 // gRPC (조건부 포함)
 #ifdef HAS_GRPC
@@ -74,10 +72,8 @@ void installSignalHandlers() {
 // V8 초기화/종료
 // ============================================================
 
-#ifdef V8_COMPRESS_POINTERS
 /// V8 플랫폼 (전역 유일)
 static std::unique_ptr<v8::Platform> g_v8_platform;
-#endif
 
 /**
  * @brief V8 엔진 전역 초기화
@@ -89,7 +85,6 @@ static std::unique_ptr<v8::Platform> g_v8_platform;
  * @return 초기화 성공 여부
  */
 bool initializeV8([[maybe_unused]] const std::string& icu_data_path = "") {
-#ifdef V8_COMPRESS_POINTERS
     // ICU 데이터 초기화 (국제화 지원)
     if (!icu_data_path.empty()) {
         v8::V8::InitializeICUDefaultLocation(icu_data_path.c_str());
@@ -109,10 +104,6 @@ bool initializeV8([[maybe_unused]] const std::string& icu_data_path = "") {
 
     std::cout << "[Ordinal] V8 엔진 초기화 완료" << std::endl;
     return true;
-#else
-    std::cout << "[Ordinal] V8 엔진 미포함 빌드 — JavaScript 실행 비활성화" << std::endl;
-    return true;
-#endif
 }
 
 /**
@@ -121,12 +112,10 @@ bool initializeV8([[maybe_unused]] const std::string& icu_data_path = "") {
  * V8 리소스를 해제하고 플랫폼을 종료합니다.
  */
 void shutdownV8() {
-#ifdef V8_COMPRESS_POINTERS
     v8::V8::Dispose();
     v8::V8::DisposePlatform();
     g_v8_platform.reset();
     std::cout << "[Ordinal] V8 엔진 종료 완료" << std::endl;
-#endif
 }
 
 // ============================================================

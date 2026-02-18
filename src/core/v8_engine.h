@@ -17,22 +17,9 @@
 #include <expected>
 #include <variant>
 
-// V8 헤더 (조건부 포함)
-#ifdef V8_COMPRESS_POINTERS
+// V8 헤더 — 항상 포함 (실제 V8 없을 때는 스텁 사용)
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#else
-// V8 없이 컴파일할 때 사용할 전방 선언
-namespace v8 {
-    class Isolate;
-    class Context;
-    class Platform;
-    class Value;
-    template<class T> class Local;
-    template<class T> class Global;
-    template<class T> class MaybeLocal;
-}
-#endif
 
 namespace ordinal::core {
 

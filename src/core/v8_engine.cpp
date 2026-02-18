@@ -24,11 +24,9 @@ bool V8Engine::s_initialized_ = false;
 struct V8Engine::Impl {
     V8EngineConfig config;
 
-#ifdef V8_COMPRESS_POINTERS
     v8::Isolate* isolate{nullptr};
     v8::Global<v8::Context> context;
     v8::Isolate::CreateParams create_params;
-#endif
 
     bool context_initialized{false};
 };
@@ -43,7 +41,6 @@ bool V8Engine::initialize(const V8EngineConfig& config) {
         return true;
     }
 
-#ifdef V8_COMPRESS_POINTERS
     // ICU 데이터 초기화
     if (!config.icu_data_path.empty()) {
         v8::V8::InitializeICUDefaultLocation(config.icu_data_path.c_str());
@@ -73,7 +70,6 @@ bool V8Engine::initialize(const V8EngineConfig& config) {
     if (config.enable_wasm) {
         v8::V8::SetFlagsFromString("--experimental-wasm-gc");
     }
-#endif
 
     s_initialized_ = true;
     std::cout << "[V8Engine] V8 엔진 초기화 완료" << std::endl;
@@ -83,10 +79,8 @@ bool V8Engine::initialize(const V8EngineConfig& config) {
 void V8Engine::shutdown() {
     if (!s_initialized_) return;
 
-#ifdef V8_COMPRESS_POINTERS
     v8::V8::Dispose();
     v8::V8::DisposePlatform();
-#endif
 
     s_platform_.reset();
     s_initialized_ = false;
@@ -110,7 +104,6 @@ V8Engine::V8Engine(const V8EngineConfig& config)
         initialize(config);
     }
 
-#ifdef V8_COMPRESS_POINTERS
     // ArrayBuffer 할당자 생성
     impl_->create_params.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -141,21 +134,14 @@ V8Engine::V8Engine(const V8EngineConfig& config)
     }
 
     impl_->context_initialized = true;
-#else
-    // V8 없이 빌드 - 더미 모드
-    impl_->context_initialized = true;
-    std::cout << "[V8Engine] V8 없이 빌드됨 (더미 모드)" << std::endl;
-#endif
 }
 
 V8Engine::~V8Engine() {
-#ifdef V8_COMPRESS_POINTERS
     if (impl_ && impl_->isolate) {
         impl_->context.Reset();
         impl_->isolate->Dispose();
         delete impl_->create_params.array_buffer_allocator;
     }
-#endif
 }
 
 V8Engine::V8Engine(V8Engine&& other) noexcept = default;
@@ -172,7 +158,6 @@ JsResult V8Engine::executeScript(
     JsResult result;
     auto start_time = std::chrono::high_resolution_clock::now();
 
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate || !impl_->context_initialized) {
         result.success = false;
         result.error_message = "V8 엔진이 초기화되지 않았습니다.";
@@ -237,12 +222,6 @@ JsResult V8Engine::executeScript(
         v8::String::Utf8Value utf8(impl_->isolate, val);
         result.value = *utf8 ? *utf8 : "undefined";
     }
-#else
-    // V8 없이 빌드 - 더미 모드 (코드 구문만 기록)
-    result.success = true;
-    result.value = "[더미 모드] 스크립트 실행 건너뜀: " + source_name;
-    std::cout << "[V8Engine] 더미 모드 - 스크립트: " << source_name << std::endl;
-#endif
 
     auto end_time = std::chrono::high_resolution_clock::now();
     result.execution_time_ms = std::chrono::duration<double, std::milli>(
@@ -253,7 +232,6 @@ JsResult V8Engine::executeScript(
 }
 
 std::optional<std::string> V8Engine::validateScript(const std::string& source_code) {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) {
         return "V8 엔진이 초기화되지 않았습니다.";
     }
@@ -281,11 +259,6 @@ std::optional<std::string> V8Engine::validateScript(const std::string& source_co
     }
 
     return std::nullopt; // 유효한 스크립트
-#else
-    // 더미 모드에서는 항상 유효
-    (void)source_code;
-    return std::nullopt;
-#endif
 }
 
 // ============================================================
@@ -298,7 +271,6 @@ void V8Engine::registerNativeFunction(
 ) {
     native_functions_[name] = std::move(func);
 
-#ifdef V8_COMPRESS_POINTERS
     // V8 컨텍스트에 함수 등록
     if (!impl_->isolate) return;
 
@@ -310,7 +282,6 @@ void V8Engine::registerNativeFunction(
 
     // TODO: v8::FunctionTemplate을 사용하여 실제 바인딩 구현
     // 네이티브 함수를 JavaScript에서 호출 가능하게 만들기
-#endif
 
     std::cout << "[V8Engine] 네이티브 함수 등록: " << name << std::endl;
 }
@@ -319,7 +290,6 @@ void V8Engine::setGlobalVariable(
     const std::string& name,
     const std::string& json_value
 ) {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return;
 
     v8::Isolate::Scope isolate_scope(impl_->isolate);
@@ -340,15 +310,9 @@ void V8Engine::setGlobalVariable(
                                     v8::NewStringType::kNormal).ToLocalChecked();
         context->Global()->Set(context, var_name, parsed.ToLocalChecked()).Check();
     }
-#else
-    std::cout << "[V8Engine] 더미 모드 - 전역 변수 설정: " << name << " = " << json_value << std::endl;
-    (void)name;
-    (void)json_value;
-#endif
 }
 
 std::optional<std::string> V8Engine::getGlobalVariable(const std::string& name) {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return std::nullopt;
 
     v8::Isolate::Scope isolate_scope(impl_->isolate);
@@ -372,10 +336,6 @@ std::optional<std::string> V8Engine::getGlobalVariable(const std::string& name) 
 
     v8::String::Utf8Value utf8(impl_->isolate, json_str.ToLocalChecked());
     return std::string(*utf8 ? *utf8 : "null");
-#else
-    (void)name;
-    return std::nullopt;
-#endif
 }
 
 // ============================================================
@@ -383,7 +343,6 @@ std::optional<std::string> V8Engine::getGlobalVariable(const std::string& name) 
 // ============================================================
 
 void V8Engine::resetContext() {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return;
 
     v8::Isolate::Scope isolate_scope(impl_->isolate);
@@ -404,38 +363,29 @@ void V8Engine::resetContext() {
     for (const auto& [name, func] : native_functions_) {
         registerNativeFunction(name, func);
     }
-#endif
     std::cout << "[V8Engine] 컨텍스트 초기화 완료" << std::endl;
 }
 
 size_t V8Engine::getHeapUsedBytes() const {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return 0;
 
     v8::HeapStatistics stats;
     impl_->isolate->GetHeapStatistics(&stats);
     return stats.used_heap_size();
-#else
-    return 0;
-#endif
 }
 
 void V8Engine::collectGarbage() {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return;
 
     impl_->isolate->LowMemoryNotification();
     std::cout << "[V8Engine] 가비지 컬렉션 실행 완료" << std::endl;
-#endif
 }
 
 void V8Engine::terminateExecution() {
-#ifdef V8_COMPRESS_POINTERS
     if (!impl_->isolate) return;
 
     impl_->isolate->TerminateExecution();
     std::cout << "[V8Engine] 스크립트 실행 종료" << std::endl;
-#endif
 }
 
 } // namespace ordinal::core
