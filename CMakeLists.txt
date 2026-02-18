@@ -160,6 +160,7 @@ set(ENGINE_SOURCES
     src/engine/url_completer.cpp
     src/engine/theme_engine.cpp
     src/engine/extension_loader.cpp
+    src/engine/newtab_credentials.cpp
 )
 
 # ============================================================

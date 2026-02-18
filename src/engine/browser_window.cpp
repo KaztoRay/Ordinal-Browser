@@ -36,6 +36,13 @@ BrowserWindow::BrowserWindow(QWidget* parent)
     m_bookmarks = new BookmarkManager(storagePath, this);
     m_history = new HistoryManager(storagePath, this);
     m_session = new SessionManager(storagePath, this);
+    m_credentials = new CredentialManager(storagePath, this);
+    m_newTabPage = new NewTabPageGenerator(m_history, this);
+    m_screenCapture = new ScreenCapture(this);
+
+    connect(m_screenCapture, &ScreenCapture::captureCompleted, this, [this](const QString& path) {
+        m_statusLabel->setText("저장 완료: " + path);
+    });
 
     setupUI();
     setupMenuBar();
@@ -287,7 +294,13 @@ void BrowserWindow::onDownloadRequested(QWebEngineDownloadRequest* download)
     });
 }
 
-void BrowserWindow::onNewTab() { createTab(QUrl("https://duckduckgo.com")); }
+void BrowserWindow::onNewTab()
+{
+    auto* view = createTab(QUrl());
+    if (view && m_newTabPage) {
+        view->setHtml(m_newTabPage->generateHtml(), QUrl("ordinal://newtab"));
+    }
+}
 void BrowserWindow::onNewWindow()
 {
     auto* w = new BrowserWindow();
@@ -541,6 +554,68 @@ void BrowserWindow::onRestoreSession()
     m_statusLabel->setText(QString("세션 복원: %1개 탭").arg(session.tabs.size()));
 }
 
+void BrowserWindow::onScreenshot()
+{
+    if (auto* v = currentWebView()) {
+        m_screenCapture->captureVisibleArea(v, "");
+    }
+}
+
+void BrowserWindow::onPrintToPdf()
+{
+    if (auto* v = currentWebView()) {
+        QString path = QFileDialog::getSaveFileName(this, "PDF로 저장", "", "PDF (*.pdf)");
+        if (!path.isEmpty()) {
+            m_screenCapture->printToPdf(v, path);
+        }
+    }
+}
+
+void BrowserWindow::onShowPasswords()
+{
+    auto* dialog = new QDialog(this);
+    dialog->setWindowTitle("비밀번호 관리");
+    dialog->resize(500, 400);
+    auto* layout = new QVBoxLayout(dialog);
+
+    auto* list = new QListWidget(dialog);
+    auto creds = m_credentials->getAllCredentials();
+    for (const auto& cred : creds) {
+        auto* item = new QListWidgetItem(
+            cred.siteUrl.host() + " — " + cred.username, list);
+        item->setData(Qt::UserRole, QVariant::fromValue(cred.id));
+    }
+    layout->addWidget(list);
+
+    // 비밀번호 생성
+    auto* genBtn = new QPushButton("비밀번호 생성", dialog);
+    connect(genBtn, &QPushButton::clicked, this, [dialog]() {
+        QString pw = CredentialManager::generatePassword(20, true, true, true);
+        QApplication::clipboard()->setText(pw);
+        QMessageBox::information(dialog, "생성된 비밀번호",
+            "클립보드에 복사됨:\n" + pw);
+    });
+    layout->addWidget(genBtn);
+
+    // 삭제
+    auto* deleteBtn = new QPushButton("선택 항목 삭제", dialog);
+    connect(deleteBtn, &QPushButton::clicked, this, [this, list]() {
+        auto* item = list->currentItem();
+        if (!item) return;
+        int64_t id = item->data(Qt::UserRole).toLongLong();
+        m_credentials->removeCredential(id);
+        delete item;
+    });
+    layout->addWidget(deleteBtn);
+
+    auto* countLabel = new QLabel(
+        QString("저장된 비밀번호: %1개").arg(creds.size()), dialog);
+    layout->addWidget(countLabel);
+
+    dialog->exec();
+    dialog->deleteLater();
+}
+
 // ============================================================
 // UI Setup
 // ============================================================
@@ -655,6 +730,11 @@ void BrowserWindow::setupMenuBar()
 
     // 도구 메뉴
     auto* toolsMenu = menuBar()->addMenu("도구(&T)");
+    toolsMenu->addAction("스크린샷", this, &BrowserWindow::onScreenshot, QKeySequence("Ctrl+Shift+S"));
+    toolsMenu->addAction("PDF로 저장", this, &BrowserWindow::onPrintToPdf, QKeySequence("Ctrl+Shift+P"));
+    toolsMenu->addSeparator();
+    toolsMenu->addAction("비밀번호 관리", this, &BrowserWindow::onShowPasswords);
+    toolsMenu->addSeparator();
     toolsMenu->addAction("설정", this, &BrowserWindow::onOpenSettings, QKeySequence("Ctrl+,"));
 
     // 도움말 메뉴

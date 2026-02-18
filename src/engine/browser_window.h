@@ -1,5 +1,6 @@
 #pragma once
 #include "data_manager.h"
+#include "newtab_credentials.h"
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QLineEdit>
@@ -70,6 +71,9 @@ private slots:
     void onShowBookmarks();
     void onShowHistory();
     void onRestoreSession();
+    void onScreenshot();
+    void onPrintToPdf();
+    void onShowPasswords();
 
 private:
     void setupUI();
@@ -107,6 +111,9 @@ private:
     BookmarkManager* m_bookmarks = nullptr;
     HistoryManager* m_history = nullptr;
     SessionManager* m_session = nullptr;
+    CredentialManager* m_credentials = nullptr;
+    NewTabPageGenerator* m_newTabPage = nullptr;
+    ScreenCapture* m_screenCapture = nullptr;
 
     // 북마크 버튼
     QAction* m_bookmarkAction = nullptr;
