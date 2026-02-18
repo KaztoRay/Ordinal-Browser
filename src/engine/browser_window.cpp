@@ -1,4 +1,5 @@
 #include "browser_window.h"
+#include "settings_page.h"
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -10,6 +11,8 @@
 #include <QInputDialog>
 #include <QStandardPaths>
 #include <QFileDialog>
+#include <QListWidget>
+#include <QPushButton>
 #include <QDir>
 #include <QDesktopServices>
 #include <iostream>
@@ -26,6 +29,11 @@ BrowserWindow::BrowserWindow(QWidget* parent)
     QDir().mkpath(storagePath);
     m_profile = new OrdinalProfile(storagePath, this);
 
+    // 데이터 매니저 초기화
+    m_bookmarks = new BookmarkManager(storagePath, this);
+    m_history = new HistoryManager(storagePath, this);
+    m_session = new SessionManager(storagePath, this);
+
     setupUI();
     setupMenuBar();
     setupToolBar();
@@ -36,8 +44,28 @@ BrowserWindow::BrowserWindow(QWidget* parent)
     connect(m_profile, &OrdinalProfile::downloadRequested,
             this, &BrowserWindow::onDownloadRequested);
 
-    // 첫 번째 탭
-    createTab(QUrl("https://duckduckgo.com"));
+    // 세션 복원 또는 새 탭
+    if (m_session->hasSession()) {
+        onRestoreSession();
+    } else {
+        createTab(QUrl("https://duckduckgo.com"));
+    }
+
+    // 자동 세션 저장 (30초마다)
+    m_session->startAutoSave([this]() -> SessionData {
+        SessionData data;
+        for (int i = 0; i < m_tabWidget->count(); ++i) {
+            auto* view = qobject_cast<OrdinalWebView*>(m_tabWidget->widget(i));
+            if (!view) continue;
+            TabState state;
+            state.url = view->currentUrl();
+            state.title = view->currentTitle();
+            state.lastAccessed = QDateTime::currentDateTime();
+            data.tabs.append(state);
+        }
+        data.activeTabIndex = m_tabWidget->currentIndex();
+        return data;
+    });
 }
 
 BrowserWindow::~BrowserWindow() = default;
@@ -198,6 +226,19 @@ void BrowserWindow::onLoadFinished(bool ok)
         int blocked = m_profile->adBlocker()->blockedCount();
         m_statusLabel->setText("완료");
         m_adBlockLabel->setText(QString("🛡 %1 차단").arg(blocked));
+
+        // 방문 기록 저장
+        auto* view = currentWebView();
+        if (view && m_history) {
+            m_history->addVisit(view->currentUrl(), view->currentTitle());
+        }
+
+        // 북마크 버튼 상태 업데이트
+        if (view && m_bookmarkAction && m_bookmarks) {
+            bool bookmarked = m_bookmarks->isBookmarked(view->currentUrl());
+            m_bookmarkAction->setText(bookmarked ? "★" : "☆");
+            m_bookmarkAction->setToolTip(bookmarked ? "북마크 제거" : "북마크 추가");
+        }
     } else {
         m_statusLabel->setText("로딩 실패");
     }
@@ -372,6 +413,131 @@ void BrowserWindow::onToggleAdBlock()
     m_statusLabel->setText(enabled ? "광고 차단 비활성화" : "광고 차단 활성화");
 }
 
+void BrowserWindow::onOpenSettings()
+{
+    auto* settings = new SettingsPage(m_profile, this);
+    settings->exec();
+    settings->deleteLater();
+}
+
+void BrowserWindow::onToggleBookmark()
+{
+    auto* view = currentWebView();
+    if (!view || !m_bookmarks) return;
+
+    QUrl url = view->currentUrl();
+    auto existing = m_bookmarks->findByUrl(url);
+    if (existing) {
+        m_bookmarks->removeBookmark(existing->id);
+        m_bookmarkAction->setText("☆");
+        m_bookmarkAction->setToolTip("북마크 추가 (Ctrl+D)");
+        m_statusLabel->setText("북마크 제거됨");
+    } else {
+        m_bookmarks->addBookmark(view->currentTitle(), url);
+        m_bookmarkAction->setText("★");
+        m_bookmarkAction->setToolTip("북마크 제거 (Ctrl+D)");
+        m_statusLabel->setText("북마크 추가됨");
+    }
+}
+
+void BrowserWindow::onShowBookmarks()
+{
+    // 간단한 북마크 목록 다이얼로그
+    auto* dialog = new QDialog(this);
+    dialog->setWindowTitle("북마크");
+    dialog->resize(400, 500);
+    auto* layout = new QVBoxLayout(dialog);
+
+    auto* list = new QListWidget(dialog);
+    auto bookmarks = m_bookmarks->getRecent(100);
+    for (const auto& bm : bookmarks) {
+        auto* item = new QListWidgetItem(bm.title + "\n" + bm.url.toString(), list);
+        item->setData(Qt::UserRole, bm.url);
+    }
+    layout->addWidget(list);
+
+    connect(list, &QListWidget::itemDoubleClicked, this, [this, dialog](QListWidgetItem* item) {
+        QUrl url = item->data(Qt::UserRole).toUrl();
+        if (auto* v = currentWebView()) v->navigate(url);
+        dialog->accept();
+    });
+
+    dialog->exec();
+    dialog->deleteLater();
+}
+
+void BrowserWindow::onShowHistory()
+{
+    auto* dialog = new QDialog(this);
+    dialog->setWindowTitle("방문 기록");
+    dialog->resize(500, 600);
+    auto* layout = new QVBoxLayout(dialog);
+
+    // 검색
+    auto* searchBar = new QLineEdit(dialog);
+    searchBar->setPlaceholderText("기록 검색...");
+    layout->addWidget(searchBar);
+
+    auto* list = new QListWidget(dialog);
+    auto recent = m_history->getRecent(200);
+    for (const auto& entry : recent) {
+        auto* item = new QListWidgetItem(
+            entry.title + "\n" + entry.url.toString() +
+            "\n" + entry.visitTime.toString("yyyy-MM-dd hh:mm"), list);
+        item->setData(Qt::UserRole, entry.url);
+    }
+    layout->addWidget(list);
+
+    connect(searchBar, &QLineEdit::textChanged, this, [this, list](const QString& text) {
+        list->clear();
+        auto results = text.isEmpty() ? m_history->getRecent(200) : m_history->search(text);
+        for (const auto& entry : results) {
+            auto* item = new QListWidgetItem(
+                entry.title + "\n" + entry.url.toString(), list);
+            item->setData(Qt::UserRole, entry.url);
+        }
+    });
+
+    connect(list, &QListWidget::itemDoubleClicked, this, [this, dialog](QListWidgetItem* item) {
+        QUrl url = item->data(Qt::UserRole).toUrl();
+        if (auto* v = currentWebView()) v->navigate(url);
+        dialog->accept();
+    });
+
+    // 삭제 버튼
+    auto* clearBtn = new QPushButton("전체 기록 삭제", dialog);
+    connect(clearBtn, &QPushButton::clicked, this, [this, list, dialog]() {
+        auto reply = QMessageBox::question(dialog, "기록 삭제", "모든 방문 기록을 삭제하시겠습니까?");
+        if (reply == QMessageBox::Yes) {
+            m_history->clearAll();
+            list->clear();
+        }
+    });
+    layout->addWidget(clearBtn);
+
+    dialog->exec();
+    dialog->deleteLater();
+}
+
+void BrowserWindow::onRestoreSession()
+{
+    auto session = m_session->loadSession();
+    if (session.tabs.isEmpty()) {
+        createTab(QUrl("https://duckduckgo.com"));
+        return;
+    }
+
+    for (const auto& tab : session.tabs) {
+        createTab(tab.url);
+    }
+
+    if (session.activeTabIndex >= 0 && session.activeTabIndex < m_tabWidget->count()) {
+        m_tabWidget->setCurrentIndex(session.activeTabIndex);
+    }
+
+    m_statusLabel->setText(QString("세션 복원: %1개 탭").arg(session.tabs.size()));
+}
+
 // ============================================================
 // UI Setup
 // ============================================================
@@ -429,12 +595,25 @@ void BrowserWindow::setupMenuBar()
     viewMenu->addSeparator();
     viewMenu->addAction("개발자 도구", this, &BrowserWindow::onOpenDevTools, QKeySequence("F12"));
 
+    // 북마크 메뉴
+    auto* bookmarkMenu = menuBar()->addMenu("북마크(&B)");
+    bookmarkMenu->addAction("북마크 추가/제거", this, &BrowserWindow::onToggleBookmark, QKeySequence("Ctrl+D"));
+    bookmarkMenu->addAction("북마크 관리", this, &BrowserWindow::onShowBookmarks, QKeySequence("Ctrl+Shift+B"));
+
+    // 히스토리 메뉴
+    auto* historyMenu = menuBar()->addMenu("기록(&I)");
+    historyMenu->addAction("방문 기록", this, &BrowserWindow::onShowHistory, QKeySequence("Ctrl+H"));
+
     // 보안 메뉴
     auto* securityMenu = menuBar()->addMenu("보안(&S)");
     securityMenu->addAction("광고 차단 토글", this, &BrowserWindow::onToggleAdBlock);
     securityMenu->addSeparator();
     securityMenu->addAction("브라우징 데이터 삭제", this, &BrowserWindow::onClearData,
                             QKeySequence("Ctrl+Shift+Delete"));
+
+    // 도구 메뉴
+    auto* toolsMenu = menuBar()->addMenu("도구(&T)");
+    toolsMenu->addAction("설정", this, &BrowserWindow::onOpenSettings, QKeySequence("Ctrl+,"));
 
     // 도움말 메뉴
     auto* helpMenu = menuBar()->addMenu("도움말(&H)");
@@ -499,6 +678,11 @@ void BrowserWindow::setupToolBar()
     });
 
     m_navToolBar->addWidget(m_urlBar);
+
+    // 북마크 버튼
+    m_bookmarkAction = m_navToolBar->addAction("☆");
+    m_bookmarkAction->setToolTip("북마크 추가 (Ctrl+D)");
+    connect(m_bookmarkAction, &QAction::triggered, this, &BrowserWindow::onToggleBookmark);
 }
 
 void BrowserWindow::setupStatusBar()

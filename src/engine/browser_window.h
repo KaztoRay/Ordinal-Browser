@@ -1,4 +1,5 @@
 #pragma once
+#include "data_manager.h"
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QLineEdit>
@@ -64,6 +65,11 @@ private slots:
     void onClearData();
     void onAbout();
     void onToggleAdBlock();
+    void onOpenSettings();
+    void onToggleBookmark();
+    void onShowBookmarks();
+    void onShowHistory();
+    void onRestoreSession();
 
 private:
     void setupUI();
@@ -96,6 +102,14 @@ private:
 
     // 프로필
     OrdinalProfile* m_profile = nullptr;
+
+    // 데이터 매니저
+    BookmarkManager* m_bookmarks = nullptr;
+    HistoryManager* m_history = nullptr;
+    SessionManager* m_session = nullptr;
+
+    // 북마크 버튼
+    QAction* m_bookmarkAction = nullptr;
 
     // Find bar
     QWidget* m_findBar = nullptr;

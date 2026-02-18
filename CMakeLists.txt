@@ -29,7 +29,7 @@ endif()
 # ============================================================
 
 # Qt6 - UI 프레임워크 + WebEngine (Chromium 기반)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui Network)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui Network Sql)
 find_package(Qt6 COMPONENTS WebEngineWidgets WebEngineCore WebEngineQuick QUIET)
 qt_standard_project_setup()
 
@@ -155,6 +155,8 @@ set(PRIVACY_SOURCES
 set(ENGINE_SOURCES
     src/engine/web_engine.cpp
     src/engine/browser_window.cpp
+    src/engine/data_manager.cpp
+    src/engine/settings_page.cpp
 )
 
 # ============================================================
@@ -195,6 +197,7 @@ target_link_libraries(ordinal-browser PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Network
+    Qt6::Sql
 )
 
 # WebEngine 링크
