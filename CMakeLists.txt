@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(OrdinalBrowser VERSION 1.2.0 LANGUAGES CXX)
+project(OrdinalBrowser VERSION 1.4.0 LANGUAGES CXX)
 
 # C++20 표준 설정
 set(CMAKE_CXX_STANDARD 20)
@@ -262,11 +262,20 @@ install(TARGETS ordinal-browser
 
 # macOS 번들 설정
 if(APPLE)
+    # 아이콘 리소스
+    set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/resources/OrdinalBrowser.icns")
+    set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    target_sources(ordinal-browser PRIVATE ${MACOSX_ICON})
+
     set_target_properties(ordinal-browser PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.ordinal.browser"
+        MACOSX_BUNDLE_BUNDLE_NAME "Ordinal Browser"
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        MACOSX_BUNDLE_ICON_FILE "OrdinalBrowser.icns"
+        MACOSX_BUNDLE_INFO_STRING "Ordinal Browser — AI Security Browser"
+        MACOSX_BUNDLE_COPYRIGHT "© 2026 KaztoRay"
     )
 endif()
 
