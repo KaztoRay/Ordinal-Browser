@@ -165,6 +165,7 @@ set(ENGINE_SOURCES
     src/engine/userscript_devtools.cpp
     src/engine/security_tabgroup.cpp
     src/engine/feed_tools.cpp
+    src/engine/permissions_access.cpp
 )
 
 # ============================================================
