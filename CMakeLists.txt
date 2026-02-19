@@ -163,6 +163,7 @@ set(ENGINE_SOURCES
     src/engine/newtab_credentials.cpp
     src/engine/sidebar_translate.cpp
     src/engine/userscript_devtools.cpp
+    src/engine/security_tabgroup.cpp
 )
 
 # ============================================================
