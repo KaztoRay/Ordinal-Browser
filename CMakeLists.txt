@@ -166,6 +166,7 @@ set(ENGINE_SOURCES
     src/engine/security_tabgroup.cpp
     src/engine/feed_tools.cpp
     src/engine/permissions_access.cpp
+    src/engine/pwa_search_sync.cpp
 )
 
 # ============================================================
