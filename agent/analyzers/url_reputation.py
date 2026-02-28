@@ -244,7 +244,7 @@ class URLReputationAnalyzer:
 
         payload = {
             "client": {
-                "clientId": "ordinal-browser",
+                "clientId": "ordinalv8",
                 "clientVersion": "1.1.0"
             },
             "threatInfo": {
@@ -310,7 +310,7 @@ class URLReputationAnalyzer:
                 form_data = aiohttp.FormData()
                 form_data.add_field("url", url)
                 form_data.add_field("format", "json")
-                form_data.add_field("app_key", "ordinal-browser")
+                form_data.add_field("app_key", "ordinalv8")
 
                 async with session.post(api_url, data=form_data) as resp:
                     if resp.status != 200:

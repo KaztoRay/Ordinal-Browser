@@ -304,7 +304,7 @@ class URLChecker:
             # API 요청 본문 구성
             payload = {
                 "client": {
-                    "clientId": "ordinal-browser",
+                    "clientId": "ordinalv8",
                     "clientVersion": "0.1.0",
                 },
                 "threatInfo": {
@@ -500,7 +500,7 @@ class URLChecker:
         """aiohttp 세션 보장 (없으면 생성)"""
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
-                headers={"User-Agent": "OrdinalBrowser/0.1.0"},
+                headers={"User-Agent": "OrdinalV8/2.0.0"},
             )
         return self._session
 

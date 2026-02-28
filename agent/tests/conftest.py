@@ -122,7 +122,7 @@ def sample_urls() -> dict[str, list[str]]:
         # 안전한 URL (HTTPS, 유명 도메인)
         "safe": [
             "https://www.google.com/search?q=python",
-            "https://github.com/KaztoRay/ordinal-browser",
+            "https://github.com/KaztoRay/ordinalv8",
             "https://docs.python.org/3/library/asyncio.html",
             "https://www.naver.com",
             "https://ko.wikipedia.org/wiki/Python",

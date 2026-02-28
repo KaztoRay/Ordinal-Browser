@@ -130,7 +130,7 @@ class ReportGenerator:
     <div class="container">
         <!-- 헤더 -->
         <div class="header">
-            <h1>🛡️ Ordinal Browser — 보안 보고서</h1>
+            <h1>🛡️ OrdinalV8 — 보안 보고서</h1>
             <p class="subtitle">생성 시각: {now}</p>
         </div>
 
@@ -199,7 +199,7 @@ class ReportGenerator:
 
         <!-- 푸터 -->
         <div class="footer">
-            <p>Ordinal Browser v1.1.0 — LLM Security Agent</p>
+            <p>OrdinalV8 v2.0.0 — LLM Security Agent</p>
             <p>© 2026 KaztoRay — MIT License</p>
         </div>
     </div>
@@ -286,7 +286,7 @@ class ReportGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>세션 보안 보고서 — Ordinal Browser</title>
+    <title>세션 보안 보고서 — OrdinalV8</title>
     <style>
         {self._embedded_css()}
     </style>
@@ -294,7 +294,7 @@ class ReportGenerator:
 <body>
     <div class="container">
         <div class="header">
-            <h1>📋 Ordinal Browser — 세션 보안 보고서</h1>
+            <h1>📋 OrdinalV8 — 세션 보안 보고서</h1>
             <p class="subtitle">생성 시각: {now} | 분석 페이지: {total_pages}개</p>
         </div>
 
@@ -362,7 +362,7 @@ class ReportGenerator:
         </div>
 
         <div class="footer">
-            <p>Ordinal Browser v1.1.0 — LLM Security Agent</p>
+            <p>OrdinalV8 v2.0.0 — LLM Security Agent</p>
             <p>© 2026 KaztoRay — MIT License</p>
         </div>
     </div>
@@ -388,7 +388,7 @@ class ReportGenerator:
             dict: JSON 직렬화 가능한 보고서
         """
         output = {
-            "generator": "Ordinal Browser v1.1.0",
+            "generator": "OrdinalV8 v2.0.0",
             "generated_at": datetime.now().isoformat(),
             "data": report_data,
         }

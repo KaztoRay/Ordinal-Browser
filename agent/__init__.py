@@ -1,5 +1,5 @@
 """
-Ordinal Browser 보안 에이전트
+OrdinalV8 보안 에이전트
 ============================
 
 LLM 기반 실시간 웹 보안 분석 에이전트.
@@ -9,8 +9,8 @@ LLM 기반 실시간 웹 보안 분석 에이전트.
 gRPC 서버로 C++ 브라우저 코어와 통신합니다.
 """
 
-__version__ = "0.1.0"
-__author__ = "Ordinal Project"
+__version__ = "2.0.0"
+__author__ = "OrdinalV8 Project"
 __description__ = "AI 기반 웹 보안 분석 에이전트"
 
 from agent.core.agent import SecurityAgent
