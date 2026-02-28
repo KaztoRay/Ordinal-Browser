@@ -1,18 +1,25 @@
 #pragma once
 
 #include <QWidget>
-#include <QTextEdit>
-#include <QLineEdit>
-#include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QSettings>
-#include <QProcess>
+#include <QPushButton>
+#include <QWebEngineView>
+#include <QWebEngineProfile>
+#include <QWebEnginePage>
 
 namespace Ordinal {
 namespace Engine {
 
+/**
+ * @brief OrdinalV8 AI 어시스턴트 — ChatGPT 웹 연동
+ *
+ * ChatGPT (chat.openai.com)를 사이드바에 임베드합니다.
+ * - API 키 불필요 (ChatGPT 계정으로 로그인)
+ * - 모든 데이터는 사용자 로컬에만 저장
+ * - 별도 프로필로 쿠키/세션 격리
+ */
 class LLMAssistant : public QWidget {
     Q_OBJECT
 
@@ -21,10 +28,6 @@ public:
     ~LLMAssistant() override = default;
 
     void setPageContext(const QString& title, const QString& url, const QString& selectedText = "");
-    void summarizePage(const QString& pageContent);
-    void translatePage(const QString& content, const QString& targetLang = "ko");
-    void analyzeSecurityThreat(const QString& threatInfo);
-    void analyzeCode(const QString& code);
 
 signals:
     void requestPageContent();
@@ -34,39 +37,19 @@ signals:
 public slots:
     void toggle();
 
-private slots:
-    void onSendMessage();
-    void onQuickAction(const QString& action);
-
 private:
     void setupUI();
-    void addMessage(const QString& sender, const QString& text, bool isUser = false);
-    void sendToOpenAI(const QString& prompt, const QString& systemPrompt = "");
-    void processCommand(const QString& input);
-    void showApiKeyDialog();
-    void loadSettings();
-    void saveSettings();
+    void loadChatGPT();
 
-    // UI
     QVBoxLayout* m_mainLayout = nullptr;
     QLabel* m_titleLabel = nullptr;
-    QTextEdit* m_chatDisplay = nullptr;
-    QLineEdit* m_inputField = nullptr;
-    QPushButton* m_sendBtn = nullptr;
-    QWidget* m_quickActionsBar = nullptr;
-    QWidget* m_loginPanel = nullptr;
-    QLineEdit* m_apiKeyInput = nullptr;
-    QWidget* m_chatPanel = nullptr;
-
-    // 상태
-    QString m_apiKey;
-    QString m_model;
+    QWebEngineView* m_webView = nullptr;
+    QWebEngineProfile* m_profile = nullptr;
+    QPushButton* m_refreshBtn = nullptr;
+    bool m_isVisible = false;
     QString m_currentPageTitle;
     QString m_currentPageUrl;
     QString m_selectedText;
-    QStringList m_conversationHistory;
-    bool m_isVisible = false;
-    bool m_isLoggedIn = false;
 };
 
 } // namespace Engine
