@@ -783,15 +783,7 @@ void BrowserWindow::setupToolBar()
     m_urlBar->setPlaceholderText("URL 또는 검색어 입력...");
     m_urlBar->setClearButtonEnabled(true);
     m_urlBar->setMinimumHeight(28);
-    m_urlBar->setStyleSheet(
-        "QLineEdit {"
-        "  border: 1px solid #ccc; border-radius: 14px;"
-        "  padding: 4px 12px; font-size: 13px;"
-        "  background: #f5f5f5;"
-        "}"
-        "QLineEdit:focus {"
-        "  border-color: #4285f4; background: white;"
-        "}");
+    // URL bar 스타일은 ThemeEngine에서 관리
 
     connect(m_urlBar, &QLineEdit::returnPressed, this, [this]() {
         navigateTo(m_urlBar->text());

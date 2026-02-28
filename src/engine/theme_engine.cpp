@@ -121,7 +121,7 @@ QString ThemeEngine::darkStyleSheet()
         }
         QLineEdit {
             background: #1a1a1a;
-            color: #dcdcdc;
+            color: #87CEEB;
             border: 1px solid #3d3d3d;
             border-radius: 15px;
             padding: 4px 14px;
@@ -130,6 +130,7 @@ QString ThemeEngine::darkStyleSheet()
         QLineEdit:focus {
             border-color: #4285f4;
             background: #252525;
+            color: #87CEEB;
         }
         QStatusBar {
             background: #2d2d2d;
@@ -223,6 +224,46 @@ QString ThemeEngine::darkStyleSheet()
 QString ThemeEngine::lightStyleSheet()
 {
     return R"(
+        QMainWindow {
+            background-color: #f8f8f8;
+        }
+        QMenuBar {
+            background-color: #f0f0f0;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+        QMenuBar::item:selected {
+            background-color: #4285f4;
+            color: white;
+        }
+        QMenu {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        QMenu::item:selected {
+            background-color: #4285f4;
+            color: white;
+        }
+        QLineEdit {
+            background: #fff;
+            color: #87CEEB;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 4px 14px;
+            font-size: 13px;
+            selection-background-color: #4285f4;
+            selection-color: white;
+        }
+        QLineEdit:focus {
+            border-color: #4285f4;
+            background: #fff;
+        }
+        QStatusBar {
+            background: #f0f0f0;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
         QTabBar::tab {
             background: #f0f0f0;
             color: #333;
