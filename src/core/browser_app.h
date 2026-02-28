@@ -30,7 +30,7 @@ struct BrowserConfig {
     uint16_t grpc_port{50051};              ///< gRPC 서버 포트 (Python Agent 통신)
     int max_tabs{50};                       ///< 최대 탭 수
     std::string homepage{"about:blank"};    ///< 홈페이지 URL
-    std::string search_engine{"https://duckduckgo.com/?q="}; ///< 기본 검색 엔진
+    std::string search_engine{"https://www.google.com/search?q="}; ///< 기본 검색 엔진
 };
 
 /**

@@ -94,8 +94,8 @@ QString NewTabPageGenerator::generateSearchBarHtml() const
 {
     return R"(
     <div class="search-box">
-        <form action="https://duckduckgo.com/" method="get">
-            <input type="text" name="q" placeholder="DuckDuckGo로 검색..." autofocus>
+        <form action="https://www.google.com/" method="get">
+            <input type="text" name="q" placeholder="Google로 검색..." autofocus>
         </form>
     </div>
     )";

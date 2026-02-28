@@ -74,8 +74,8 @@ void SuggestionModel::updateSuggestions(const QString& prefix)
     if (!prefix.startsWith("http") && !prefix.contains(".")) {
         SuggestionItem item;
         item.type = SuggestionItem::SearchEngine;
-        item.title = "\"" + prefix + "\" DuckDuckGo 검색";
-        item.url = QUrl("https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(prefix));
+        item.title = "\"" + prefix + "\" Google 검색";
+        item.url = QUrl("https://www.google.com/search?q=" + QUrl::toPercentEncoding(prefix));
         m_items.append(item);
     }
 

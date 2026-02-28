@@ -390,7 +390,7 @@ QString AddressBar::buildSearchUrl(const QString& query) const {
     static const QMap<QString, QString> search_shortcuts = {
         {"!g",  "https://www.google.com/search?q=%s"},
         {"!b",  "https://www.bing.com/search?q=%s"},
-        {"!d",  "https://duckduckgo.com/?q=%s"},
+        {"!d",  "https://www.google.com/search?q=%s"},
         {"!y",  "https://search.yahoo.com/search?p=%s"},
         {"!w",  "https://en.wikipedia.org/w/index.php?search=%s"},
         {"!gh", "https://github.com/search?q=%s"},

@@ -66,7 +66,7 @@ QWidget* SettingsPage::createGeneralTab()
     layout->setSpacing(12);
 
     // 홈 페이지
-    m_homePage = new QLineEdit("https://duckduckgo.com");
+    m_homePage = new QLineEdit("https://www.google.com");
     layout->addRow("홈 페이지:", m_homePage);
 
     // 시작 시 동작
@@ -221,7 +221,7 @@ QWidget* SettingsPage::createSearchTab()
 
     m_searchEngine = new QComboBox();
     m_searchEngine->addItems({
-        "DuckDuckGo", "Google", "Bing", "Brave Search",
+        "Google", "Google", "Bing", "Brave Search",
         "Startpage", "Ecosia", "Naver"
     });
     layout->addRow("검색 엔진:", m_searchEngine);
@@ -233,7 +233,7 @@ QWidget* SettingsPage::createSearchTab()
     // 검색 엔진 URL 참고
     auto* infoLabel = new QLabel(
         "검색 엔진별 URL:\n"
-        "• DuckDuckGo: https://duckduckgo.com/?q=\n"
+        "• Google: https://www.google.com/search?q=\n"
         "• Google: https://www.google.com/search?q=\n"
         "• Naver: https://search.naver.com/search.naver?query=");
     infoLabel->setWordWrap(true);
@@ -276,7 +276,7 @@ QWidget* SettingsPage::createAdvancedTab()
 
 void SettingsPage::loadSettings()
 {
-    m_homePage->setText(m_settings.value("general/homePage", "https://duckduckgo.com").toString());
+    m_homePage->setText(m_settings.value("general/homePage", "https://www.google.com").toString());
     m_startupBehavior->setCurrentIndex(m_settings.value("general/startupBehavior", 0).toInt());
     m_restoreSession->setChecked(m_settings.value("general/restoreSession", true).toBool());
 

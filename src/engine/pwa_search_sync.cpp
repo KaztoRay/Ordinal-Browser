@@ -378,9 +378,9 @@ void SearchEngineManager::initBuiltinEngines()
         m_engines.append(e);
     };
 
-    add("duckduckgo", "DuckDuckGo",
-        "https://duckduckgo.com/?q={query}",
-        "https://duckduckgo.com/ac/?q={query}&type=list", "d");
+    add("google", "Google",
+        "https://www.google.com/search?q={query}",
+        "https://www.google.com/ac/?q={query}&type=list", "d");
 
     add("google", "Google",
         "https://www.google.com/search?q={query}",
@@ -471,7 +471,7 @@ QUrl SearchEngineManager::search(const QString& query) const
         if (e.isDefault) return e.buildSearchUrl(query);
     }
     // fallback
-    return QUrl("https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(query));
+    return QUrl("https://www.google.com/search?q=" + QUrl::toPercentEncoding(query));
 }
 
 QUrl SearchEngineManager::searchWith(const QString& engineId, const QString& query) const

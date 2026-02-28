@@ -58,7 +58,7 @@ BrowserWindow::BrowserWindow(QWidget* parent)
     if (m_session->hasSession()) {
         onRestoreSession();
     } else {
-        createTab(QUrl("https://duckduckgo.com"));
+        createTab(QUrl("https://www.google.com"));
     }
 
     // 자동 세션 저장 (30초마다)
@@ -148,7 +148,7 @@ void BrowserWindow::closeTab(int index)
 {
     if (m_tabWidget->count() <= 1) {
         // 마지막 탭이면 새 탭 열고 이전 탭 닫기
-        createTab(QUrl("https://duckduckgo.com"));
+        createTab(QUrl("https://www.google.com"));
     }
 
     auto* webView = qobject_cast<OrdinalWebView*>(m_tabWidget->widget(index));
@@ -319,7 +319,7 @@ void BrowserWindow::onReloadPage()
 
 void BrowserWindow::onGoBack() { if (auto* v = currentWebView()) v->goBack(); }
 void BrowserWindow::onGoForward() { if (auto* v = currentWebView()) v->goForward(); }
-void BrowserWindow::onGoHome() { if (auto* v = currentWebView()) v->navigate(QUrl("https://duckduckgo.com")); }
+void BrowserWindow::onGoHome() { if (auto* v = currentWebView()) v->navigate(QUrl("https://www.google.com")); }
 
 void BrowserWindow::onFocusUrlBar()
 {
@@ -539,7 +539,7 @@ void BrowserWindow::onRestoreSession()
 {
     auto session = m_session->loadSession();
     if (session.tabs.isEmpty()) {
-        createTab(QUrl("https://duckduckgo.com"));
+        createTab(QUrl("https://www.google.com"));
         return;
     }
 
@@ -568,6 +568,15 @@ void BrowserWindow::onPrintToPdf()
         if (!path.isEmpty()) {
             m_screenCapture->printToPdf(v, path);
         }
+    }
+}
+
+void BrowserWindow::onToggleLLM()
+{
+    m_llmAssistant->toggle();
+    // 현재 페이지 컨텍스트 전달
+    if (auto* v = currentWebView()) {
+        m_llmAssistant->setPageContext(v->title(), v->url().toString(), v->selectedText());
     }
 }
 
@@ -682,7 +691,22 @@ void BrowserWindow::setupUI()
         menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
     });
 
-    setCentralWidget(m_tabWidget);
+    // AI 어시스턴트 사이드바
+    m_llmAssistant = new LLMAssistant(this);
+
+    // 메인 레이아웃 (탭 + AI 사이드바)
+    auto* centralWidget = new QWidget(this);
+    auto* mainLayout = new QHBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+    mainLayout->addWidget(m_tabWidget, 1);
+    mainLayout->addWidget(m_llmAssistant);
+    setCentralWidget(centralWidget);
+
+    // 페이지 변경 시 AI에 컨텍스트 전달
+    connect(m_llmAssistant, &LLMAssistant::searchRequested, this, [this](const QString& query) {
+        navigateTo(query);
+    });
 }
 
 void BrowserWindow::setupMenuBar()
@@ -733,6 +757,8 @@ void BrowserWindow::setupMenuBar()
     toolsMenu->addAction("PDF로 저장", QKeySequence("Ctrl+Shift+P"), this, &BrowserWindow::onPrintToPdf);
     toolsMenu->addSeparator();
     toolsMenu->addAction("비밀번호 관리", this, &BrowserWindow::onShowPasswords);
+    toolsMenu->addSeparator();
+    toolsMenu->addAction("🤖 AI 어시스턴트", QKeySequence("Ctrl+Shift+A"), this, &BrowserWindow::onToggleLLM);
     toolsMenu->addSeparator();
     toolsMenu->addAction("설정", QKeySequence("Ctrl+,"), this, &BrowserWindow::onOpenSettings);
 

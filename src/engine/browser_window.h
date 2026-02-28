@@ -13,6 +13,7 @@
 #include <QMap>
 #include <QWebEngineDownloadRequest>
 #include "web_engine.h"
+#include "llm_assistant.h"
 
 namespace Ordinal {
 namespace Engine {
@@ -74,6 +75,7 @@ private slots:
     void onScreenshot();
     void onPrintToPdf();
     void onShowPasswords();
+    void onToggleLLM();
 
 private:
     void setupUI();
@@ -121,6 +123,9 @@ private:
     // Find bar
     QWidget* m_findBar = nullptr;
     QLineEdit* m_findInput = nullptr;
+
+    // AI 어시스턴트
+    LLMAssistant* m_llmAssistant = nullptr;
 };
 
 } // namespace Engine

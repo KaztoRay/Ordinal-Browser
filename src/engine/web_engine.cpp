@@ -340,9 +340,9 @@ QUrl OrdinalWebView::resolveInput(const QString& input) const
         return QUrl("http://" + trimmed);
     }
 
-    // 검색 쿼리로 처리 (DuckDuckGo — 프라이버시 기본)
+    // 검색 쿼리로 처리 (Google — 프라이버시 기본)
     QString encoded = QUrl::toPercentEncoding(trimmed);
-    return QUrl("https://duckduckgo.com/?q=" + encoded);
+    return QUrl("https://www.google.com/search?q=" + encoded);
 }
 
 // ============================================================

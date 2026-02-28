@@ -98,7 +98,6 @@ QWidget* SettingsDialog::createGeneralTab() {
 
     m_searchEngineCombo = new QComboBox(searchGroup);
     m_searchEngineCombo->addItem("Google",       "https://www.google.com/search?q=");
-    m_searchEngineCombo->addItem("DuckDuckGo",   "https://duckduckgo.com/?q=");
     m_searchEngineCombo->addItem("Bing",         "https://www.bing.com/search?q=");
     m_searchEngineCombo->addItem("Brave Search", "https://search.brave.com/search?q=");
     searchLayout->addRow(tr("기본 검색 엔진:"), m_searchEngineCombo);

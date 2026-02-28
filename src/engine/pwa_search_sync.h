@@ -119,7 +119,7 @@ struct SearchEngineEntry {
     QUrl searchUrl;       // {query} 플레이스홀더
     QUrl suggestUrl;      // 자동완성 URL (선택)
     QUrl iconUrl;
-    QString shortcut;     // "g" for Google, "d" for DuckDuckGo
+    QString shortcut;     // "g" for Google, "d" for Google
     bool isDefault = false;
     bool builtin = true;
 
@@ -166,7 +166,7 @@ private:
 
     QList<SearchEngineEntry> m_engines;
     QString m_storagePath;
-    QString m_defaultId = "duckduckgo";
+    QString m_defaultId = "google";
 };
 
 // ============================================================
