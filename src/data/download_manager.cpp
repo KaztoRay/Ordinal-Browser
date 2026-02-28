@@ -973,7 +973,7 @@ void DownloadManager::performDownload(DownloadItem& item) {
 
     // User-Agent 설정
     curl_easy_setopt(curl, CURLOPT_USERAGENT,
-                     "OrdinalBrowser/1.1.0 (libcurl)");
+                     "OrdinalV8/1.1.0 (libcurl)");
 
     // 참조 URL 설정
     if (!item.referrer_url.empty()) {

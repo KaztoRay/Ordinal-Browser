@@ -565,7 +565,7 @@ bool BookmarkManager::exportToHtml(const std::string& file_path) const {
     if (!ofs.is_open()) return false;
 
     ofs << "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n";
-    ofs << "<!-- Ordinal Browser 북마크 내보내기 -->\n";
+    ofs << "<!-- OrdinalV8 북마크 내보내기 -->\n";
     ofs << "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n";
     ofs << "<TITLE>북마크</TITLE>\n";
     ofs << "<H1>북마크</H1>\n";

@@ -2,7 +2,7 @@
 
 ## 1. 에이전트 개요
 
-Ordinal Browser의 **LLM Security Agent**는 Python으로 구현된 비동기 보안 분석 시스템입니다.
+OrdinalV8의 **LLM Security Agent**는 Python으로 구현된 비동기 보안 분석 시스템입니다.
 GPT-4(또는 로컬 HuggingFace 모델) 기반 추론과 규칙 기반 분석을 결합하여
 피싱, 악성코드, XSS, 프라이버시 침해를 실시간으로 탐지합니다.
 
@@ -601,7 +601,7 @@ AGENT_LOG_LEVEL=INFO
 
 ```bash
 # Python 3.11+ 필요
-cd ordinal-browser/agent
+cd ordinalv8/agent
 
 # 가상 환경 생성
 python3 -m venv .venv

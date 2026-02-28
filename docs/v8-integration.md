@@ -53,7 +53,7 @@ tools/dev/v8gen.py arm64.release
 
 # 빌드 옵션 편집
 cat > out.gn/arm64.release/args.gn << 'EOF'
-# Ordinal Browser V8 빌드 설정 — macOS ARM64
+# OrdinalV8 V8 빌드 설정 — macOS ARM64
 
 # 릴리스 빌드
 is_debug = false
@@ -92,11 +92,11 @@ ninja -C out.gn/arm64.release v8_monolith
 # - out.gn/arm64.release/obj/libv8_monolith.a  (~80MB)
 ```
 
-### 1.6 Ordinal Browser에 V8 연동
+### 1.6 OrdinalV8에 V8 연동
 
 ```bash
 # V8을 프로젝트에 복사
-cd ~/Desktop/ordinal-browser
+cd ~/Desktop/ordinalv8
 mkdir -p third_party/v8
 
 # 헤더 복사
@@ -422,7 +422,7 @@ v8::Isolate* isolate = v8::Isolate::New(params);
 ```
 
 메모리 한도를 초과하면 V8이 OOM(Out of Memory) 에러를 발생시키고,
-Ordinal Browser의 `V8Engine`이 이를 포착하여 안전하게 탭을 닫습니다.
+OrdinalV8의 `V8Engine`이 이를 포착하여 안전하게 탭을 닫습니다.
 
 ### 4.3 실행 타임아웃 (TerminateExecution)
 
@@ -461,7 +461,7 @@ JsResult V8Engine::executeScript(const std::string& code, ...) {
 V8 12.0+에서 도입된 메모리 안전 샌드박스입니다. CMake에서 다음과 같이 활성화됩니다:
 
 ```cmake
-target_compile_definitions(ordinal-browser PRIVATE
+target_compile_definitions(ordinalv8 PRIVATE
     V8_COMPRESS_POINTERS
     V8_ENABLE_SANDBOX
 )
@@ -810,7 +810,7 @@ void V8Engine::resetContext() {
 
 ---
 
-## 부록: Ordinal Browser의 V8Engine 클래스 설계
+## 부록: OrdinalV8의 V8Engine 클래스 설계
 
 ```
 V8Engine

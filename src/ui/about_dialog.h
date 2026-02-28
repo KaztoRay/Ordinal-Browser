@@ -2,7 +2,7 @@
  * @file about_dialog.h
  * @brief 정보 다이얼로그 — 앱 아이콘, 버전, 빌드 정보, 라이선스, 업데이트 확인
  * 
- * Ordinal Browser v1.1.0 정보 표시 다이얼로그.
+ * OrdinalV8 v1.1.0 정보 표시 다이얼로그.
  * "V8 기반 보안 브라우저 + LLM Security Agent" 소개.
  * 
  * © 2026 KaztoRay — MIT License
@@ -20,11 +20,11 @@ namespace Ordinal {
 
 /**
  * @class AboutDialog
- * @brief Ordinal Browser 정보 다이얼로그
+ * @brief OrdinalV8 정보 다이얼로그
  * 
  * 중앙 정렬 레이아웃:
  *   - 앱 아이콘 (128px)
- *   - "Ordinal Browser" 제목 (24pt bold)
+ *   - "OrdinalV8" 제목 (24pt bold)
  *   - "v1.1.0" 버전
  *   - 부제목 설명
  *   - 빌드 정보 (Qt 버전, 플랫폼, 아키텍처)
@@ -69,7 +69,7 @@ private:
 
     // UI 요소
     QLabel*       m_iconLabel;        ///< 앱 아이콘 (128x128)
-    QLabel*       m_titleLabel;       ///< "Ordinal Browser" 제목
+    QLabel*       m_titleLabel;       ///< "OrdinalV8" 제목
     QLabel*       m_versionLabel;     ///< 버전 번호
     QLabel*       m_subtitleLabel;    ///< 부제목 설명
     QLabel*       m_buildInfoLabel;   ///< 빌드 정보

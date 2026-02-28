@@ -79,7 +79,7 @@ TEST_F(HttpClientTest, UrlWithQueryParams) {
 // 4. GET 요청 헤더 빌드
 TEST_F(HttpClientTest, BuildsGetRequestHeaders) {
     HttpClient client;
-    client.setUserAgent("OrdinalBrowser/1.0");
+    client.setUserAgent("OrdinalV8/1.0");
     client.setDefaultHeader("Accept-Language", "ko-KR,ko;q=0.9");
 
     // GET 요청 구성 확인

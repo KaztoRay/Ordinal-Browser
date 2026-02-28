@@ -3,7 +3,7 @@
 # ============================================================
 # macOS DMG 패키징 스크립트
 # ============================================================
-# Ordinal Browser를 .app 번들로 만들고 DMG 디스크 이미지로 패키징합니다.
+# OrdinalV8를 .app 번들로 만들고 DMG 디스크 이미지로 패키징합니다.
 #
 # 사용법:
 #   ./packaging/macos/create_dmg.sh [빌드_디렉토리]
@@ -17,17 +17,17 @@
 set -euo pipefail
 
 # ---- 설정 변수 ----
-APP_NAME="Ordinal Browser"
+APP_NAME="OrdinalV8"
 APP_BUNDLE="${APP_NAME}.app"
-BINARY_NAME="ordinal-browser"
+BINARY_NAME="ordinalv8"
 VERSION=$(cat "$(dirname "$0")/../../VERSION" 2>/dev/null || echo "1.0.0")
-BUNDLE_ID="com.kaztoray.ordinal-browser"
-DMG_NAME="OrdinalBrowser-${VERSION}-macOS"
+BUNDLE_ID="com.kaztoray.ordinalv8"
+DMG_NAME="OrdinalV8-${VERSION}-macOS"
 BUILD_DIR="${1:-$(dirname "$0")/../../build}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-echo "🍎 Ordinal Browser macOS 패키징 시작 (v${VERSION})"
+echo "🍎 OrdinalV8 macOS 패키징 시작 (v${VERSION})"
 echo "============================================================"
 
 # ---- 빌드 디렉토리 확인 ----

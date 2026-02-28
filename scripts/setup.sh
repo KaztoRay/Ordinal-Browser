@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Ordinal Browser 개발 환경 설정 스크립트
+# OrdinalV8 개발 환경 설정 스크립트
 # ============================================================
 #
 # macOS 개발 환경에 필요한 의존성을 설치하고
@@ -28,7 +28,7 @@ NC='\033[0m'
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo -e "${GREEN}╔══════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Ordinal Browser 개발 환경 설정    ║${NC}"
+echo -e "${GREEN}║   OrdinalV8 개발 환경 설정    ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════╝${NC}"
 echo ""
 
@@ -187,5 +187,5 @@ echo "  4. 보안 에이전트 실행:"
 echo "     python -m agent"
 echo ""
 echo "  5. 브라우저 실행:"
-echo "     ./build/ordinal-browser"
+echo "     ./build/ordinalv8"
 echo ""

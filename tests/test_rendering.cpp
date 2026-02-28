@@ -270,7 +270,7 @@ protected:
             <html>
             <body>
                 <div id="container">
-                    <h1 class="title">Ordinal Browser</h1>
+                    <h1 class="title">OrdinalV8</h1>
                     <p class="desc">V8 기반 보안 브라우저</p>
                     <ul>
                         <li>피싱 탐지</li>
@@ -341,8 +341,8 @@ TEST_F(DomTreeTest, ExtractsTextContent) {
         << "문서의 textContent가 비어있으면 안 됩니다";
 
     // 핵심 텍스트 포함 확인
-    EXPECT_NE(text.find("Ordinal Browser"), std::string::npos)
-        << "textContent에 'Ordinal Browser'가 포함되어야 합니다";
+    EXPECT_NE(text.find("OrdinalV8"), std::string::npos)
+        << "textContent에 'OrdinalV8'가 포함되어야 합니다";
     EXPECT_NE(text.find("Copyright"), std::string::npos)
         << "textContent에 'Copyright'가 포함되어야 합니다";
 }

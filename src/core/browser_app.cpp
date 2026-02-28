@@ -34,7 +34,7 @@ bool BrowserApp::initialize(const BrowserConfig& config) {
     state_ = BrowserState::Initializing;
     config_ = config;
 
-    std::cout << "[BrowserApp] Ordinal Browser 초기화 시작..." << std::endl;
+    std::cout << "[BrowserApp] OrdinalV8 초기화 시작..." << std::endl;
 
     // 1. 사용자 데이터 디렉토리 생성
     if (!config_.user_data_dir.empty()) {
@@ -75,7 +75,7 @@ bool BrowserApp::initialize(const BrowserConfig& config) {
     }
 
     state_ = BrowserState::Running;
-    std::cout << "[BrowserApp] Ordinal Browser 초기화 완료!" << std::endl;
+    std::cout << "[BrowserApp] OrdinalV8 초기화 완료!" << std::endl;
 
     // 초기 탭 생성
     createTab(config_.homepage);
@@ -98,7 +98,7 @@ void BrowserApp::shutdown() {
     V8Engine::shutdown();
 
     state_ = BrowserState::Terminated;
-    std::cout << "[BrowserApp] Ordinal Browser 종료 완료" << std::endl;
+    std::cout << "[BrowserApp] OrdinalV8 종료 완료" << std::endl;
 }
 
 // ============================================================

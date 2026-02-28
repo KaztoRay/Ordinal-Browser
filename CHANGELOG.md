@@ -30,7 +30,7 @@
 - **새 파일:** 14개 (C++ 12, Python 2)
 - **새 코드:** +6,000줄
 
-[1.2.0]: https://github.com/KaztoRay/Ordinal-Browser/compare/v1.1.0...v1.2.0
+[1.2.0]: https://github.com/KaztoRay/OrdinalV8/compare/v1.1.0...v1.2.0
 
 ## [1.1.0] — 2026-02-15
 
@@ -54,7 +54,7 @@
 #### 🤖 에이전트 강화
 - URL 평판, CSP/SRI/CORS 분석, HTML 보안 리포트, 실시간 모니터
 
-[1.1.0]: https://github.com/KaztoRay/Ordinal-Browser/compare/v1.0.0...v1.1.0
+[1.1.0]: https://github.com/KaztoRay/OrdinalV8/compare/v1.0.0...v1.1.0
 
 ## [1.0.0] — 2026-02-13
 
@@ -122,7 +122,7 @@ V8 JavaScript 엔진 기반 보안 브라우저와 LLM Security Agent의 최초 
 - macOS DMG 빌더 (`create_dmg.sh`, `Info.plist`)
 - Linux DEB 빌더 (`create_deb.sh`)
 - Linux AppImage 빌더 (`create_appimage.sh`)
-- 데스크톱 엔트리 (`ordinal-browser.desktop`)
+- 데스크톱 엔트리 (`ordinalv8.desktop`)
 - CPack 크로스 플랫폼 설정 (`packaging/CMakeLists.txt`)
 
 #### 테스트 (40+ 케이스)
@@ -142,4 +142,4 @@ V8 JavaScript 엔진 기반 보안 브라우저와 LLM Security Agent의 최초 
 - **테스트:** 40+ 케이스 (GTest + pytest)
 - **커밋:** 17개
 
-[1.0.0]: https://github.com/KaztoRay/ordinal-browser/releases/tag/v1.0.0
+[1.0.0]: https://github.com/KaztoRay/ordinalv8/releases/tag/v1.0.0

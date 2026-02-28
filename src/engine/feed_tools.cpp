@@ -160,7 +160,7 @@ void FeedReader::refreshFeed(int64_t feedId)
     QUrl feedUrl(q.value(0).toString());
     QNetworkRequest request(feedUrl);
     request.setHeader(QNetworkRequest::UserAgentHeader,
-        "OrdinalBrowser/1.3.0 FeedReader");
+        "OrdinalV8/1.3.0 FeedReader");
 
     auto* reply = m_network->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, feedId, reply]() {

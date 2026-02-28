@@ -354,7 +354,7 @@ void JSBridge::registerBuiltinAPIs() {
     // ordinal.runtime.id — 런타임 식별자
     registerFunction("ordinal.runtime.id",
         [](const std::vector<BridgeValue>&) -> BridgeResult {
-            return {true, std::string("ordinal-browser-runtime"), ""};
+            return {true, std::string("ordinalv8-runtime"), ""};
         },
         BridgePermission::Extension,
         "런타임 식별자 조회"
@@ -364,7 +364,7 @@ void JSBridge::registerBuiltinAPIs() {
     registerFunction("ordinal.runtime.getManifest",
         [](const std::vector<BridgeValue>&) -> BridgeResult {
             std::unordered_map<std::string, std::string> manifest;
-            manifest["name"] = "Ordinal Browser";
+            manifest["name"] = "OrdinalV8";
             manifest["version"] = "1.1.0";
             manifest["manifest_version"] = "3";
             return {true, manifest, ""};

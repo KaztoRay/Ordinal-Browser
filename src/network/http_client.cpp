@@ -18,7 +18,7 @@ namespace ordinal::network {
  */
 struct HttpClient::Impl {
     CURL* curl{nullptr};
-    std::string user_agent{"OrdinalBrowser/0.1"};
+    std::string user_agent{"OrdinalV8/0.1"};
     std::unordered_map<std::string, std::string> default_headers;
     std::optional<std::string> proxy_url;
     bool ssl_verify{true};

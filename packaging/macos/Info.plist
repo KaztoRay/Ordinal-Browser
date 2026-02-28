@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
     "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-    Info.plist — Ordinal Browser macOS 앱 번들 메타데이터
+    Info.plist — OrdinalV8 macOS 앱 번들 메타데이터
     
     이 파일은 macOS가 앱을 식별하고 실행하기 위해 필요한
     핵심 메타데이터를 정의합니다.
@@ -11,13 +11,13 @@
 <dict>
     <!-- 앱 기본 정보 -->
     <key>CFBundleName</key>
-    <string>Ordinal Browser</string>
+    <string>OrdinalV8</string>
 
     <key>CFBundleDisplayName</key>
-    <string>Ordinal Browser</string>
+    <string>OrdinalV8</string>
 
     <key>CFBundleIdentifier</key>
-    <string>com.kaztoray.ordinal-browser</string>
+    <string>com.kaztoray.ordinalv8</string>
 
     <!-- 버전 정보 (빌드 스크립트에서 ${VERSION}으로 치환) -->
     <key>CFBundleVersion</key>
@@ -31,7 +31,7 @@
     <string>APPL</string>
 
     <key>CFBundleExecutable</key>
-    <string>ordinal-browser</string>
+    <string>ordinalv8</string>
 
     <key>CFBundleSignature</key>
     <string>ORDB</string>
@@ -130,6 +130,6 @@
 
     <!-- Sparkle 자동 업데이트 피드 URL (추후 설정) -->
     <!-- <key>SUFeedURL</key>
-    <string>https://ordinal-browser.dev/appcast.xml</string> -->
+    <string>https://ordinalv8.dev/appcast.xml</string> -->
 </dict>
 </plist>

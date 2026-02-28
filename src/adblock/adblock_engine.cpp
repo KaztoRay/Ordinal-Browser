@@ -27,7 +27,7 @@ namespace {
 
 /// 내장 광고 차단 필터 (EasyList 핵심 룰 축약)
 const char* BUILTIN_FILTERS = R"FILTERS(
-! Title: Ordinal Browser 내장 필터
+! Title: OrdinalV8 내장 필터
 ! Homepage: https://github.com/KaztoRay/Ordinal-Browser
 ! Version: 1.0
 

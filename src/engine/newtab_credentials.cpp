@@ -61,13 +61,13 @@ QString NewTabPageGenerator::generateHtml() const
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>새 탭 — Ordinal Browser</title>
+<title>새 탭 — OrdinalV8</title>
 <style>%1</style>
 </head>
 <body>
 <div class="container">
     <div class="logo">
-        <h1>🔒 Ordinal</h1>
+        <h1>🔒 OrdinalV8</h1>
         <p class="subtitle">AI 기반 보안 브라우저</p>
     </div>
     %2
@@ -588,7 +588,7 @@ QString CredentialManager::encrypt(const QString& plaintext) const
     // XOR 기반 간이 암호화 (실제 프로덕션에서는 AES-256 사용)
     QByteArray data = plaintext.toUtf8();
     QByteArray key = m_derivedKey.isEmpty() ?
-        QByteArray("ordinal-default-key-2026") : m_derivedKey.toUtf8();
+        QByteArray("ordinalv8-default-key-2026") : m_derivedKey.toUtf8();
 
     QByteArray result;
     result.reserve(data.size());
@@ -602,7 +602,7 @@ QString CredentialManager::decrypt(const QString& ciphertext) const
 {
     QByteArray data = QByteArray::fromBase64(ciphertext.toUtf8());
     QByteArray key = m_derivedKey.isEmpty() ?
-        QByteArray("ordinal-default-key-2026") : m_derivedKey.toUtf8();
+        QByteArray("ordinalv8-default-key-2026") : m_derivedKey.toUtf8();
 
     QByteArray result;
     result.reserve(data.size());

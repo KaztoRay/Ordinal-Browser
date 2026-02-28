@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief Ordinal Browser 메인 진입점
+ * @brief OrdinalV8 메인 진입점
  *
  * Qt WebEngine (Chromium) 기반 보안 웹 브라우저
  * 광고 차단, WebRTC 보호, 핑거프린팅 방지, LLM 보안 에이전트 내장
@@ -25,7 +25,7 @@ namespace {
 QApplication* g_app = nullptr;
 
 void signalHandler(int signum) {
-    std::cerr << "\n[Ordinal] 시그널 " << signum << " 수신 — 종료 중..." << std::endl;
+    std::cerr << "\n[OrdinalV8] 시그널 " << signum << " 수신 — 종료 중..." << std::endl;
     if (g_app) g_app->quit();
 }
 
@@ -45,17 +45,17 @@ int main(int argc, char* argv[])
     QtWebEngineQuick::initialize();
 
     QApplication app(argc, argv);
-    QApplication::setApplicationName("Ordinal Browser");
-    QApplication::setApplicationVersion("1.2.0");
-    QApplication::setOrganizationName("Ordinal");
+    QApplication::setApplicationName("OrdinalV8");
+    QApplication::setApplicationVersion("2.0.0");
+    QApplication::setOrganizationName("OrdinalV8");
     QApplication::setOrganizationDomain("ordinal.dev");
-    QApplication::setWindowIcon(QIcon(":/icons/ordinal-browser.png"));
+    QApplication::setWindowIcon(QIcon(":/icons/ordinalv8.png"));
 
     g_app = &app;
 
     // CLI 인수 파싱
     QCommandLineParser parser;
-    parser.setApplicationDescription("Ordinal Browser — AI 기반 보안 웹 브라우저");
+    parser.setApplicationDescription("OrdinalV8 — AI 기반 보안 웹 브라우저");
     parser.addHelpOption();
     parser.addVersionOption();
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     installSignalHandlers();
 
     // 테마 적용 (시스템 기본)
-    QSettings themeSettings("Ordinal", "OrdinalBrowser");
+    QSettings themeSettings("OrdinalV8", "OrdinalV8");
     int themeIdx = themeSettings.value("appearance/theme", 0).toInt();
     Ordinal::Engine::ThemeEngine::apply(
         static_cast<Ordinal::Engine::ThemeEngine::Theme>(themeIdx), &app);
@@ -84,9 +84,9 @@ int main(int argc, char* argv[])
         window.navigateTo(positionalArgs.first());
     }
 
-    std::cout << "[Ordinal] Ordinal Browser v1.2.0 시작 완료" << std::endl;
-    std::cout << "[Ordinal] Chromium (Qt WebEngine) 기반" << std::endl;
-    std::cout << "[Ordinal] 광고 차단 / WebRTC 보호 / 핑거프린팅 방지 활성화" << std::endl;
+    std::cout << "[OrdinalV8] OrdinalV8 v2.0.0 시작 완료" << std::endl;
+    std::cout << "[OrdinalV8] Chromium (Qt WebEngine) 기반" << std::endl;
+    std::cout << "[OrdinalV8] 광고 차단 / WebRTC 보호 / 핑거프린팅 방지 활성화" << std::endl;
 
     return app.exec();
 }

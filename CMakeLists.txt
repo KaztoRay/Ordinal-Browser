@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(OrdinalBrowser VERSION 1.4.0 LANGUAGES CXX)
+project(OrdinalV8 VERSION 2.0.0 LANGUAGES CXX)
 
 # C++20 표준 설정
 set(CMAKE_CXX_STANDARD 20)
@@ -176,12 +176,12 @@ set(ENGINE_SOURCES
 # WebEngine 사용 시 main.cpp만 + Engine 모듈
 # 스텁 모드에서는 기존 모듈 전체 포함
 if(HAS_WEBENGINE)
-    qt_add_executable(ordinal-browser
+    qt_add_executable(ordinalv8
         src/main.cpp
         ${ENGINE_SOURCES}
     )
 else()
-    qt_add_executable(ordinal-browser
+    qt_add_executable(ordinalv8
         src/main.cpp
         ${CORE_SOURCES}
         ${NETWORK_SOURCES}
@@ -196,13 +196,13 @@ else()
 endif()
 
 # 헤더 포함 경로
-target_include_directories(ordinal-browser PRIVATE
+target_include_directories(ordinalv8 PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${V8_INCLUDE_DIR}
 )
 
 # 라이브러리 링크
-target_link_libraries(ordinal-browser PRIVATE
+target_link_libraries(ordinalv8 PRIVATE
     Qt6::Widgets
     Qt6::Core
     Qt6::Gui
@@ -212,50 +212,50 @@ target_link_libraries(ordinal-browser PRIVATE
 
 # WebEngine 링크
 if(HAS_WEBENGINE)
-    target_link_libraries(ordinal-browser PRIVATE
+    target_link_libraries(ordinalv8 PRIVATE
         Qt6::WebEngineWidgets
         Qt6::WebEngineCore
     )
     if(Qt6WebEngineQuick_FOUND)
-        target_link_libraries(ordinal-browser PRIVATE Qt6::WebEngineQuick)
+        target_link_libraries(ordinalv8 PRIVATE Qt6::WebEngineQuick)
     endif()
-    target_compile_definitions(ordinal-browser PRIVATE HAS_WEBENGINE=1)
+    target_compile_definitions(ordinalv8 PRIVATE HAS_WEBENGINE=1)
 endif()
 
 # OpenSSL & CURL (옵션)
 find_package(OpenSSL QUIET)
 find_package(CURL QUIET)
 if(OpenSSL_FOUND)
-    target_link_libraries(ordinal-browser PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(ordinalv8 PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif()
 if(CURL_FOUND)
-    target_link_libraries(ordinal-browser PRIVATE CURL::libcurl)
+    target_link_libraries(ordinalv8 PRIVATE CURL::libcurl)
 endif()
 
 # V8 라이브러리 (옵션 — 없으면 스텁 사용)
 find_library(V8_LIB v8_monolith PATHS ${V8_LIB_DIR} NO_DEFAULT_PATH)
 
 if(V8_LIB)
-    target_link_directories(ordinal-browser PRIVATE ${V8_LIB_DIR})
-    target_link_libraries(ordinal-browser PRIVATE v8_monolith)
-    target_compile_definitions(ordinal-browser PRIVATE V8_COMPRESS_POINTERS V8_ENABLE_SANDBOX)
+    target_link_directories(ordinalv8 PRIVATE ${V8_LIB_DIR})
+    target_link_libraries(ordinalv8 PRIVATE v8_monolith)
+    target_compile_definitions(ordinalv8 PRIVATE V8_COMPRESS_POINTERS V8_ENABLE_SANDBOX)
     message(STATUS "V8 라이브러리 발견: ${V8_LIB}")
 else()
     message(WARNING "V8 라이브러리 없음 — 스텁 모드로 빌드")
-    target_compile_definitions(ordinal-browser PRIVATE V8_STUB_MODE=1)
+    target_compile_definitions(ordinalv8 PRIVATE V8_STUB_MODE=1)
 endif()
 
 # gRPC 링크 (존재하는 경우에만)
 if(gRPC_FOUND)
-    target_link_libraries(ordinal-browser PRIVATE gRPC::grpc++ protobuf::libprotobuf)
-    target_compile_definitions(ordinal-browser PRIVATE HAS_GRPC)
+    target_link_libraries(ordinalv8 PRIVATE gRPC::grpc++ protobuf::libprotobuf)
+    target_compile_definitions(ordinalv8 PRIVATE HAS_GRPC)
 endif()
 
 # ============================================================
 # 설치 규칙
 # ============================================================
 
-install(TARGETS ordinal-browser
+install(TARGETS ordinalv8
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
@@ -263,18 +263,18 @@ install(TARGETS ordinal-browser
 # macOS 번들 설정
 if(APPLE)
     # 아이콘 리소스
-    set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/resources/OrdinalBrowser.icns")
+    set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/resources/OrdinalV8.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    target_sources(ordinal-browser PRIVATE ${MACOSX_ICON})
+    target_sources(ordinalv8 PRIVATE ${MACOSX_ICON})
 
-    set_target_properties(ordinal-browser PROPERTIES
+    set_target_properties(ordinalv8 PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER "com.ordinal.browser"
-        MACOSX_BUNDLE_BUNDLE_NAME "Ordinal Browser"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.ordinal.v8"
+        MACOSX_BUNDLE_BUNDLE_NAME "OrdinalV8"
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-        MACOSX_BUNDLE_ICON_FILE "OrdinalBrowser.icns"
-        MACOSX_BUNDLE_INFO_STRING "Ordinal Browser — AI Security Browser"
+        MACOSX_BUNDLE_ICON_FILE "OrdinalV8.icns"
+        MACOSX_BUNDLE_INFO_STRING "OrdinalV8 — AI Security Browser"
         MACOSX_BUNDLE_COPYRIGHT "© 2026 KaztoRay"
     )
 endif()
@@ -285,7 +285,7 @@ endif()
 enable_testing()
 
 message(STATUS "======================================")
-message(STATUS "Ordinal Browser v${PROJECT_VERSION}")
+message(STATUS "OrdinalV8 v${PROJECT_VERSION}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "V8 Root: ${V8_ROOT}")

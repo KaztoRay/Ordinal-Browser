@@ -2,7 +2,7 @@
  * @file about_dialog.cpp
  * @brief 정보 다이얼로그 구현 — 앱 정보, 빌드 상세, 라이선스, 업데이트 확인
  * 
- * Ordinal Browser v1.1.0 정보 표시.
+ * OrdinalV8 v1.1.0 정보 표시.
  * GitHub API를 통한 업데이트 확인 기능 포함.
  * 
  * © 2026 KaztoRay — MIT License
@@ -39,7 +39,7 @@ static constexpr const char* GITHUB_API   = "https://api.github.com/repos/KaztoR
 AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle(tr("Ordinal Browser 정보"));
+    setWindowTitle(tr("OrdinalV8 정보"));
     setFixedSize(520, 640);
     setupUI();
 }
@@ -60,7 +60,7 @@ void AboutDialog::setupUI() {
     m_iconLabel->setFixedSize(128, 128);
 
     // 아이콘 로드 시도 — 없으면 텍스트 대체
-    QPixmap icon(":/icons/ordinal-browser.png");
+    QPixmap icon(":/icons/ordinalv8.png");
     if (!icon.isNull()) {
         m_iconLabel->setPixmap(icon.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     } else {
@@ -72,8 +72,8 @@ void AboutDialog::setupUI() {
     }
     mainLayout->addWidget(m_iconLabel, 0, Qt::AlignCenter);
 
-    // ---- 제목: "Ordinal Browser" (24pt bold) ----
-    m_titleLabel = new QLabel("Ordinal Browser", this);
+    // ---- 제목: "OrdinalV8" (24pt bold) ----
+    m_titleLabel = new QLabel("OrdinalV8", this);
     QFont titleFont = m_titleLabel->font();
     titleFont.setPointSize(24);
     titleFont.setBold(true);
@@ -233,7 +233,7 @@ void AboutDialog::onCheckUpdate() {
     auto* manager = new QNetworkAccessManager(this);
 
     QNetworkRequest request(QUrl(GITHUB_API));
-    request.setHeader(QNetworkRequest::UserAgentHeader, "OrdinalBrowser/1.1.0");
+    request.setHeader(QNetworkRequest::UserAgentHeader, "OrdinalV8/1.1.0");
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
 
     QNetworkReply* reply = manager->get(request);

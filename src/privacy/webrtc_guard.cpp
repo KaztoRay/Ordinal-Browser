@@ -48,7 +48,7 @@ QString WebRtcGuard::generateEnforcementJs() const
 (function() {
     'use strict';
     // Completely disable WebRTC APIs
-    const noop = function() { throw new DOMException('WebRTC is disabled by Ordinal Browser', 'NotAllowedError'); };
+    const noop = function() { throw new DOMException('WebRTC is disabled by OrdinalV8', 'NotAllowedError'); };
     Object.defineProperty(window, 'RTCPeerConnection', { value: undefined, writable: false, configurable: false });
     Object.defineProperty(window, 'webkitRTCPeerConnection', { value: undefined, writable: false, configurable: false });
     Object.defineProperty(window, 'mozRTCPeerConnection', { value: undefined, writable: false, configurable: false });

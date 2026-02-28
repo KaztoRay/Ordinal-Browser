@@ -116,7 +116,7 @@ ConsoleTab::ConsoleTab(QWidget* parent) : QWidget(parent) {
     // 초기 메시지
     ConsoleMessage welcome;
     welcome.level = ConsoleLevel::Info;
-    welcome.text = "Ordinal Browser 개발자 콘솔 v0.1.0";
+    welcome.text = "OrdinalV8 개발자 콘솔 v0.1.0";
     welcome.timestamp = QDateTime::currentDateTime();
     addMessage(welcome);
 }

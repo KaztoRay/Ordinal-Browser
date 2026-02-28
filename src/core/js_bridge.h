@@ -248,7 +248,7 @@ public:
     // ---- 내장 API 등록 ----
 
     /**
-     * @brief 기본 Ordinal Browser API 등록
+     * @brief 기본 OrdinalV8 API 등록
      * 
      * 다음 API를 자동 등록합니다:
      * - ordinal.version() — 브라우저 버전

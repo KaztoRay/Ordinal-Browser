@@ -3,7 +3,7 @@
 # ============================================================
 # Linux AppImage 빌드 스크립트
 # ============================================================
-# Ordinal Browser를 이식 가능한 AppImage로 패키징합니다.
+# OrdinalV8를 이식 가능한 AppImage로 패키징합니다.
 # 모든 의존성(Qt, V8, 라이브러리)을 포함하여 단일 실행 파일을 생성합니다.
 #
 # 사용법:
@@ -18,18 +18,18 @@
 set -euo pipefail
 
 # ---- 설정 변수 ----
-APP_NAME="Ordinal Browser"
-BINARY_NAME="ordinal-browser"
+APP_NAME="OrdinalV8"
+BINARY_NAME="ordinalv8"
 VERSION=$(cat "$(dirname "$0")/../../VERSION" 2>/dev/null || echo "1.0.0")
 ARCH=$(uname -m)
 BUILD_DIR="${1:-$(dirname "$0")/../../build}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-APPIMAGE_NAME="OrdinalBrowser-${VERSION}-${ARCH}.AppImage"
+APPIMAGE_NAME="OrdinalV8-${VERSION}-${ARCH}.AppImage"
 APPDIR="${BUILD_DIR}/AppDir"
 
-echo "🐧 Ordinal Browser AppImage 빌드 시작 (v${VERSION}, ${ARCH})"
+echo "🐧 OrdinalV8 AppImage 빌드 시작 (v${VERSION}, ${ARCH})"
 echo "============================================================"
 
 # ---- 빌드 바이너리 확인 ----
@@ -121,17 +121,17 @@ fi
 
 # ---- 데스크톱 파일 복사 ----
 echo "🖥️  데스크톱 엔트리 설정 중..."
-if [ -f "${SCRIPT_DIR}/ordinal-browser.desktop" ]; then
-    cp "${SCRIPT_DIR}/ordinal-browser.desktop" "${APPDIR}/usr/share/applications/${BINARY_NAME}.desktop"
+if [ -f "${SCRIPT_DIR}/ordinalv8.desktop" ]; then
+    cp "${SCRIPT_DIR}/ordinalv8.desktop" "${APPDIR}/usr/share/applications/${BINARY_NAME}.desktop"
     # AppDir 루트에도 복사 (AppImage 요구사항)
-    cp "${SCRIPT_DIR}/ordinal-browser.desktop" "${APPDIR}/${BINARY_NAME}.desktop"
+    cp "${SCRIPT_DIR}/ordinalv8.desktop" "${APPDIR}/${BINARY_NAME}.desktop"
 else
     cat > "${APPDIR}/${BINARY_NAME}.desktop" << DESKTOP
 [Desktop Entry]
-Name=Ordinal Browser
+Name=OrdinalV8
 Comment=V8-based Security Browser with LLM Agent
-Exec=ordinal-browser %u
-Icon=ordinal-browser
+Exec=ordinalv8 %u
+Icon=ordinalv8
 Type=Application
 Categories=Network;WebBrowser;Security;
 MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
@@ -190,7 +190,7 @@ export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-gtk3}"
 export XDG_DATA_DIRS="${HERE}/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
 # 실행
-exec "${HERE}/usr/bin/ordinal-browser" "$@"
+exec "${HERE}/usr/bin/ordinalv8" "$@"
 APPRUN
 chmod +x "${APPDIR}/AppRun"
 
@@ -199,19 +199,19 @@ echo "📝 AppStream 메타데이터 생성 중..."
 cat > "${APPDIR}/usr/share/metainfo/${BINARY_NAME}.appdata.xml" << APPDATA
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.kaztoray.ordinal-browser</id>
-  <name>Ordinal Browser</name>
+  <id>com.kaztoray.ordinalv8</id>
+  <name>OrdinalV8</name>
   <summary>V8 기반 보안 브라우저 + LLM Security Agent</summary>
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
   <description>
-    <p>Ordinal Browser는 V8 JavaScript 엔진 기반의 보안 중심 웹 브라우저입니다.</p>
+    <p>OrdinalV8는 V8 JavaScript 엔진 기반의 보안 중심 웹 브라우저입니다.</p>
     <p>실시간 피싱 탐지, XSS 방어, LLM 기반 위협 분석을 제공합니다.</p>
   </description>
-  <url type="homepage">https://github.com/KaztoRay/ordinal-browser</url>
-  <url type="bugtracker">https://github.com/KaztoRay/ordinal-browser/issues</url>
+  <url type="homepage">https://github.com/KaztoRay/ordinalv8</url>
+  <url type="bugtracker">https://github.com/KaztoRay/ordinalv8/issues</url>
   <provides>
-    <binary>ordinal-browser</binary>
+    <binary>ordinalv8</binary>
   </provides>
   <releases>
     <release version="${VERSION}" date="2026-02-13"/>

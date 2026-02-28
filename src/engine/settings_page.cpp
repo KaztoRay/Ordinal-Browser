@@ -18,9 +18,9 @@ namespace Engine {
 SettingsPage::SettingsPage(OrdinalProfile* profile, QWidget* parent)
     : QDialog(parent)
     , m_profile(profile)
-    , m_settings("Ordinal", "OrdinalBrowser")
+    , m_settings("OrdinalV8", "OrdinalV8")
 {
-    setWindowTitle("설정 — Ordinal Browser");
+    setWindowTitle("설정 — OrdinalV8");
     setMinimumSize(640, 520);
     setupUI();
     loadSettings();

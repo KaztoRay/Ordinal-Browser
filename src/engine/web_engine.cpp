@@ -267,7 +267,7 @@ void OrdinalWebView::openDevTools()
     page()->setDevToolsPage(devPage);
     auto* devView = new QWebEngineView();
     devView->setPage(devPage);
-    devView->setWindowTitle("Ordinal DevTools — " + title());
+    devView->setWindowTitle("OrdinalV8 DevTools — " + title());
     devView->resize(1200, 800);
     devView->show();
 }
@@ -547,7 +547,7 @@ OrdinalProfile::OrdinalProfile(const QString& storagePath, QObject* parent)
     : QObject(parent)
     , m_storagePath(storagePath)
 {
-    m_profile = new QWebEngineProfile("Ordinal", this);
+    m_profile = new QWebEngineProfile("OrdinalV8", this);
     setupProfile();
     setupInterceptors();
 }
@@ -624,7 +624,7 @@ void OrdinalProfile::setupProfile()
     QString defaultUA = m_profile->httpUserAgent();
     // Chrome UA와 유사하게 (호환성)
     m_profile->setHttpUserAgent(
-        defaultUA.replace("QtWebEngine", "OrdinalBrowser/1.2.0"));
+        defaultUA.replace("QtWebEngine", "OrdinalV8/2.0.0"));
 
     // 기본 보안 설정
     auto* settings = m_profile->settings();

@@ -3,7 +3,7 @@
 # ============================================================
 # Linux .deb 패키지 빌드 스크립트
 # ============================================================
-# Ordinal Browser를 Debian/Ubuntu .deb 패키지로 빌드합니다.
+# OrdinalV8를 Debian/Ubuntu .deb 패키지로 빌드합니다.
 #
 # 사용법:
 #   ./packaging/linux/create_deb.sh [빌드_디렉토리]
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 # ---- 설정 변수 ----
-PACKAGE_NAME="ordinal-browser"
+PACKAGE_NAME="ordinalv8"
 VERSION=$(cat "$(dirname "$0")/../../VERSION" 2>/dev/null || echo "1.0.0")
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo "amd64")
 MAINTAINER="KaztoRay <KaztoRay@users.noreply.github.com>"
@@ -28,7 +28,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 DEB_DIR="${BUILD_DIR}/deb-package"
 DEB_NAME="${PACKAGE_NAME}_${VERSION}_${ARCH}"
 
-echo "🐧 Ordinal Browser .deb 패키지 빌드 시작 (v${VERSION}, ${ARCH})"
+echo "🐧 OrdinalV8 .deb 패키지 빌드 시작 (v${VERSION}, ${ARCH})"
 echo "============================================================"
 
 # ---- 빌드 바이너리 확인 ----
@@ -85,9 +85,9 @@ Recommends: fonts-noto, fonts-noto-cjk
 Suggests: python3 (>= 3.12), python3-pip
 Section: web
 Priority: optional
-Homepage: https://github.com/KaztoRay/ordinal-browser
+Homepage: https://github.com/KaztoRay/ordinalv8
 Description: ${DESCRIPTION}
- Ordinal Browser는 V8 JavaScript 엔진 기반의 보안 중심 웹 브라우저입니다.
+ OrdinalV8는 V8 JavaScript 엔진 기반의 보안 중심 웹 브라우저입니다.
  .
  주요 기능:
   - V8 JavaScript 엔진을 통한 웹 페이지 렌더링
@@ -138,16 +138,16 @@ chmod 755 "${DEB_DIR}/usr/bin/${PACKAGE_NAME}"
 
 # ---- 데스크톱 파일 복사 ----
 echo "🖥️  데스크톱 엔트리 복사 중..."
-if [ -f "${SCRIPT_DIR}/ordinal-browser.desktop" ]; then
-    cp "${SCRIPT_DIR}/ordinal-browser.desktop" \
+if [ -f "${SCRIPT_DIR}/ordinalv8.desktop" ]; then
+    cp "${SCRIPT_DIR}/ordinalv8.desktop" \
         "${DEB_DIR}/usr/share/applications/${PACKAGE_NAME}.desktop"
 else
     cat > "${DEB_DIR}/usr/share/applications/${PACKAGE_NAME}.desktop" << DESKTOP
 [Desktop Entry]
-Name=Ordinal Browser
+Name=OrdinalV8
 Comment=V8-based Security Browser with LLM Agent
-Exec=ordinal-browser %u
-Icon=ordinal-browser
+Exec=ordinalv8 %u
+Icon=ordinalv8
 Type=Application
 Categories=Network;WebBrowser;Security;
 MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;

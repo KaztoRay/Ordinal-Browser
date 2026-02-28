@@ -1,5 +1,5 @@
 ; =============================================================================
-; Ordinal Browser — NSIS 설치 스크립트
+; OrdinalV8 — NSIS 설치 스크립트
 ; Windows x64/ARM64 설치 파일 생성
 ; =============================================================================
 
@@ -22,9 +22,9 @@
 
 ; 버전에서 'v' 접두사 제거
 !define VERSION_CLEAN "${{VERSION}}"
-!define PRODUCT_NAME "Ordinal Browser"
+!define PRODUCT_NAME "OrdinalV8"
 !define PRODUCT_PUBLISHER "KaztoRay"
-!define PRODUCT_WEB_SITE "https://github.com/KaztoRay/ordinal-browser"
+!define PRODUCT_WEB_SITE "https://github.com/KaztoRay/ordinalv8"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_DIR_REGKEY "Software\${PRODUCT_NAME}"
 
@@ -32,7 +32,7 @@
 ; 일반 설정
 ; ---------------------------------------------------------------------------
 Name "${PRODUCT_NAME} ${VERSION}"
-OutFile "ordinal-browser-${VERSION}-${ARCH}-setup.exe"
+OutFile "ordinalv8-${VERSION}-${ARCH}-setup.exe"
 Unicode True
 SetCompressor /SOLID lzma
 SetCompressorDictSize 64
@@ -52,8 +52,8 @@ InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" "InstallDir"
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
-!define MUI_FINISHPAGE_RUN "$INSTDIR\ordinal-browser.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "Ordinal Browser 실행"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\ordinalv8.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "OrdinalV8 실행"
 
 ; ---------------------------------------------------------------------------
 ; 설치 페이지
@@ -105,7 +105,7 @@ Section "!${PRODUCT_NAME} 코어" SEC_CORE
   ; -----------------------------------------------------------------------
   ; 메인 실행 파일 및 핵심 DLL
   ; -----------------------------------------------------------------------
-  File "dist\ordinal-browser.exe"
+  File "dist\ordinalv8.exe"
 
   ; -----------------------------------------------------------------------
   ; Qt6 런타임 DLL — windeployqt로 배포된 파일들
@@ -181,7 +181,7 @@ Section "!${PRODUCT_NAME} 코어" SEC_CORE
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\ordinal-browser.exe"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\ordinalv8.exe"
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${VERSION}"
@@ -200,7 +200,7 @@ SectionEnd
 ; =============================================================================
 Section "시작 메뉴 바로가기" SEC_STARTMENU
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortcut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\ordinal-browser.exe"
+  CreateShortcut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\ordinalv8.exe"
   CreateShortcut "$SMPROGRAMS\${PRODUCT_NAME}\제거.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
@@ -208,7 +208,7 @@ SectionEnd
 ; 섹션: 바탕화면 바로가기
 ; =============================================================================
 Section "바탕화면 바로가기" SEC_DESKTOP
-  CreateShortcut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\ordinal-browser.exe"
+  CreateShortcut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\ordinalv8.exe"
 SectionEnd
 
 ; =============================================================================
@@ -216,13 +216,13 @@ SectionEnd
 ; =============================================================================
 Section /o "HTML 파일 연결 (.html, .htm)" SEC_FILEASSOC
   ; .html 연결
-  WriteRegStr HKCR ".html\OpenWithProgids" "OrdinalBrowser.HTML" ""
-  WriteRegStr HKCR "OrdinalBrowser.HTML" "" "HTML Document"
-  WriteRegStr HKCR "OrdinalBrowser.HTML\DefaultIcon" "" "$INSTDIR\ordinal-browser.exe,0"
-  WriteRegStr HKCR "OrdinalBrowser.HTML\shell\open\command" "" '"$INSTDIR\ordinal-browser.exe" "%1"'
+  WriteRegStr HKCR ".html\OpenWithProgids" "OrdinalV8.HTML" ""
+  WriteRegStr HKCR "OrdinalV8.HTML" "" "HTML Document"
+  WriteRegStr HKCR "OrdinalV8.HTML\DefaultIcon" "" "$INSTDIR\ordinalv8.exe,0"
+  WriteRegStr HKCR "OrdinalV8.HTML\shell\open\command" "" '"$INSTDIR\ordinalv8.exe" "%1"'
 
   ; .htm 연결
-  WriteRegStr HKCR ".htm\OpenWithProgids" "OrdinalBrowser.HTML" ""
+  WriteRegStr HKCR ".htm\OpenWithProgids" "OrdinalV8.HTML" ""
 
   ; 시스템에 파일 연결 변경 알림
   System::Call 'shell32::SHChangeNotify(i 0x8000000, i 0, p 0, p 0)'
@@ -232,10 +232,10 @@ SectionEnd
 ; 섹션 설명
 ; =============================================================================
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CORE} "Ordinal Browser 코어 파일 (필수)"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CORE} "OrdinalV8 코어 파일 (필수)"
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_STARTMENU} "시작 메뉴에 바로가기 생성"
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DESKTOP} "바탕화면에 바로가기 생성"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_FILEASSOC} "HTML 파일을 Ordinal Browser로 열기"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC_FILEASSOC} "HTML 파일을 OrdinalV8로 열기"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ; =============================================================================
@@ -244,7 +244,7 @@ SectionEnd
 Function .onInit
   ; Windows 10 이상 확인
   ${IfNot} ${AtLeastWin10}
-    MessageBox MB_OK|MB_ICONSTOP "Ordinal Browser는 Windows 10 이상이 필요합니다."
+    MessageBox MB_OK|MB_ICONSTOP "OrdinalV8는 Windows 10 이상이 필요합니다."
     Abort
   ${EndIf}
 
@@ -253,7 +253,7 @@ Function .onInit
     ; ARM64인지 추가 확인
     System::Call 'kernel32::IsWow64Process2(p -1, *i .r0, *i .r1)'
     ${If} $1 != 0xAA64
-      MessageBox MB_OK|MB_ICONSTOP "Ordinal Browser는 64비트 Windows가 필요합니다."
+      MessageBox MB_OK|MB_ICONSTOP "OrdinalV8는 64비트 Windows가 필요합니다."
       Abort
     ${EndIf}
   ${EndIf}
@@ -262,7 +262,7 @@ Function .onInit
   ReadRegStr $0 HKLM "${PRODUCT_DIR_REGKEY}" "InstallDir"
   ${If} $0 != ""
     MessageBox MB_YESNO|MB_ICONQUESTION \
-      "Ordinal Browser가 이미 설치되어 있습니다.$\n기존 버전을 업그레이드하시겠습니까?" \
+      "OrdinalV8가 이미 설치되어 있습니다.$\n기존 버전을 업그레이드하시겠습니까?" \
       IDYES upgrade
       Abort
     upgrade:
@@ -278,13 +278,13 @@ Section "Uninstall"
   ; -----------------------------------------------------------------------
   ; 실행 중인 프로세스 종료 시도
   ; -----------------------------------------------------------------------
-  nsExec::ExecToLog 'taskkill /F /IM ordinal-browser.exe'
+  nsExec::ExecToLog 'taskkill /F /IM ordinalv8.exe'
 
   ; -----------------------------------------------------------------------
   ; 파일 삭제
   ; -----------------------------------------------------------------------
   ; 메인 실행 파일
-  Delete "$INSTDIR\ordinal-browser.exe"
+  Delete "$INSTDIR\ordinalv8.exe"
 
   ; Qt6 DLL
   Delete "$INSTDIR\Qt6Core.dll"
@@ -345,9 +345,9 @@ Section "Uninstall"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
 
   ; 파일 연결 제거
-  DeleteRegValue HKCR ".html\OpenWithProgids" "OrdinalBrowser.HTML"
-  DeleteRegValue HKCR ".htm\OpenWithProgids" "OrdinalBrowser.HTML"
-  DeleteRegKey HKCR "OrdinalBrowser.HTML"
+  DeleteRegValue HKCR ".html\OpenWithProgids" "OrdinalV8.HTML"
+  DeleteRegValue HKCR ".htm\OpenWithProgids" "OrdinalV8.HTML"
+  DeleteRegKey HKCR "OrdinalV8.HTML"
 
   ; 시스템에 파일 연결 변경 알림
   System::Call 'shell32::SHChangeNotify(i 0x8000000, i 0, p 0, p 0)'

@@ -236,7 +236,7 @@ QString ThemeManager::buildDarkStylesheet() const {
     // 다크 테마 QSS — Catppuccin Mocha 기반
     return QStringLiteral(R"(
 /* ========================================
- * Ordinal Browser — 다크 테마 (Catppuccin Mocha)
+ * OrdinalV8 — 다크 테마 (Catppuccin Mocha)
  * ======================================== */
 
 QMainWindow {
@@ -564,7 +564,7 @@ QString ThemeManager::buildLightStylesheet() const {
     // 라이트 테마 QSS — Catppuccin Latte 기반
     return QStringLiteral(R"(
 /* ========================================
- * Ordinal Browser — 라이트 테마 (Catppuccin Latte)
+ * OrdinalV8 — 라이트 테마 (Catppuccin Latte)
  * ======================================== */
 
 QMainWindow {
@@ -872,7 +872,7 @@ QFrame[frameShape="4"], QFrame[frameShape="5"] {
 // ============================================================
 
 void ThemeManager::saveToSettings() const {
-    QSettings settings("OrdinalBrowser", "Theme");
+    QSettings settings("OrdinalV8", "Theme");
 
     // 테마 모드 저장
     QString modeStr;
@@ -895,7 +895,7 @@ void ThemeManager::saveToSettings() const {
 }
 
 void ThemeManager::loadFromSettings() {
-    QSettings settings("OrdinalBrowser", "Theme");
+    QSettings settings("OrdinalV8", "Theme");
 
     // 테마 모드 로드
     QString modeStr = settings.value("theme/mode", "system").toString();

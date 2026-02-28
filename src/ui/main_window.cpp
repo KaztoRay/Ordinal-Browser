@@ -31,7 +31,7 @@ namespace ordinal::ui {
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // 윈도우 기본 설정
-    setWindowTitle("Ordinal Browser");
+    setWindowTitle("OrdinalV8");
     setMinimumSize(1024, 768);
     resize(1400, 900);
 
@@ -315,7 +315,7 @@ void MainWindow::onTitleChanged(const QString& title) {
     if (tab_bar_ && currentTabIndex() >= 0) {
         tab_bar_->setTabTitle(currentTabIndex(), title);
     }
-    setWindowTitle(title + " — Ordinal Browser");
+    setWindowTitle(title + " — OrdinalV8");
 }
 
 // ============================================================
@@ -416,9 +416,9 @@ void MainWindow::createSecurityMenu() {
 void MainWindow::createHelpMenu() {
     auto* menu = menuBar()->addMenu("도움말(&H)");
 
-    menu->addAction("Ordinal Browser 정보", this, [this]() {
-        QMessageBox::about(this, "Ordinal Browser",
-            "Ordinal Browser v0.1.0\n\n"
+    menu->addAction("OrdinalV8 정보", this, [this]() {
+        QMessageBox::about(this, "OrdinalV8",
+            "OrdinalV8 v0.1.0\n\n"
             "AI 기반 보안 웹 브라우저\n"
             "V8 JavaScript 엔진 + LLM 보안 에이전트\n\n"
             "© 2026 Ordinal Project");

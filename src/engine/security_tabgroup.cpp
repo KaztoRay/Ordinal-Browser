@@ -557,7 +557,7 @@ void BrowserProfileManager::setupProfile(QWebEngineProfile* profile, ProfileType
     profile->setHttpUserAgent(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "OrdinalBrowser/1.2.0 Chrome/120.0.0.0 Safari/537.36");
+        "OrdinalV8/1.2.0 Chrome/120.0.0.0 Safari/537.36");
 
     auto* settings = profile->settings();
     settings->setAttribute(QWebEngineSettings::JavascriptEnabled, true);

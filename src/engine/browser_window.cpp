@@ -28,7 +28,7 @@ BrowserWindow::BrowserWindow(QWidget* parent)
 {
     // 프로필 초기화
     QString storagePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-                          + "/OrdinalBrowser";
+                          + "/OrdinalV8";
     QDir().mkpath(storagePath);
     m_profile = new OrdinalProfile(storagePath, this);
 
@@ -100,7 +100,7 @@ OrdinalWebView* BrowserWindow::createTab(const QUrl& url)
             m_tabWidget->setTabToolTip(idx, title);
         }
         if (webView == currentWebView()) {
-            setWindowTitle(title + " — Ordinal Browser");
+            setWindowTitle(title + " — OrdinalV8");
         }
     });
 
@@ -190,7 +190,7 @@ void BrowserWindow::onTabChanged(int index)
     if (!webView) return;
 
     updateAddressBar(webView->currentUrl());
-    setWindowTitle(webView->currentTitle() + " — Ordinal Browser");
+    setWindowTitle(webView->currentTitle() + " — OrdinalV8");
 
     m_backAction->setEnabled(webView->history()->canGoBack());
     m_forwardAction->setEnabled(webView->history()->canGoForward());
@@ -204,7 +204,7 @@ void BrowserWindow::onTabCloseRequested(int index)
 
 void BrowserWindow::onTitleChanged(const QString& title)
 {
-    setWindowTitle(title + " — Ordinal Browser");
+    setWindowTitle(title + " — OrdinalV8");
 }
 
 void BrowserWindow::onUrlChanged(const QUrl& url)
@@ -412,14 +412,14 @@ void BrowserWindow::onClearData()
 
 void BrowserWindow::onAbout()
 {
-    QMessageBox::about(this, "Ordinal Browser",
-        "<h2>Ordinal Browser v1.2.0</h2>"
+    QMessageBox::about(this, "OrdinalV8",
+        "<h2>OrdinalV8 v2.0.0</h2>"
         "<p>AI 기반 보안 웹 브라우저</p>"
         "<p>Chromium 엔진 (Qt WebEngine) 기반<br>"
         "LLM Security Agent 내장<br>"
         "광고 차단 / 추적 방지 / WebRTC 보호</p>"
-        "<p>© 2026 KaztoRay / Ordinal Project</p>"
-        "<p><a href='https://github.com/KaztoRay/Ordinal-Browser'>GitHub</a></p>");
+        "<p>© 2026 KaztoRay / OrdinalV8 Project</p>"
+        "<p><a href='https://github.com/KaztoRay/OrdinalV8'>GitHub</a></p>");
 }
 
 void BrowserWindow::onToggleAdBlock()
@@ -622,7 +622,7 @@ void BrowserWindow::onShowPasswords()
 
 void BrowserWindow::setupUI()
 {
-    setWindowTitle("Ordinal Browser");
+    setWindowTitle("OrdinalV8");
     resize(1280, 800);
 
     // 탭 위젯

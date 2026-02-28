@@ -2,7 +2,7 @@
  * @file settings_dialog.cpp
  * @brief 설정 다이얼로그 구현 — 6개 탭, QSettings 연동, 데이터 삭제 다이얼로그
  * 
- * 모든 설정은 QSettings("OrdinalBrowser", "Settings")에 저장/로드.
+ * 모든 설정은 QSettings("OrdinalV8", "Settings")에 저장/로드.
  * Apply 시 settingsApplied() 시그널로 메인 윈도우에 변경 알림.
  * 
  * © 2026 KaztoRay — MIT License
@@ -31,7 +31,7 @@ namespace Ordinal {
 SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle(tr("설정 — Ordinal Browser"));
+    setWindowTitle(tr("설정 — OrdinalV8"));
     setMinimumSize(680, 520);
     resize(720, 560);
 
@@ -400,7 +400,7 @@ QWidget* SettingsDialog::createAdvancedTab() {
 // ============================================================
 
 void SettingsDialog::loadSettings() {
-    QSettings s("OrdinalBrowser", "Settings");
+    QSettings s("OrdinalV8", "Settings");
 
     // 일반
     m_homepageEdit->setText(s.value("general/homepage", "https://www.google.com").toString());
@@ -463,7 +463,7 @@ void SettingsDialog::loadSettings() {
 // ============================================================
 
 void SettingsDialog::saveSettings() {
-    QSettings s("OrdinalBrowser", "Settings");
+    QSettings s("OrdinalV8", "Settings");
 
     // 일반
     s.setValue("general/homepage",      m_homepageEdit->text());
@@ -672,7 +672,7 @@ void SettingsDialog::onResetSettings() {
         QMessageBox::Yes | QMessageBox::No);
 
     if (ret == QMessageBox::Yes) {
-        QSettings s("OrdinalBrowser", "Settings");
+        QSettings s("OrdinalV8", "Settings");
         s.clear();
         s.sync();
 

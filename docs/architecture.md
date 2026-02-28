@@ -1,8 +1,8 @@
-# Ordinal Browser — 아키텍처 문서
+# OrdinalV8 — 아키텍처 문서
 
 ## 1. 프로젝트 개요
 
-**Ordinal Browser**는 C++20과 Qt6 기반으로 구현된 보안 중심 웹 브라우저입니다.
+**OrdinalV8**는 C++20과 Qt6 기반으로 구현된 보안 중심 웹 브라우저입니다.
 자체 HTML5 파서, CSS 파서, DOM 트리, 레이아웃 엔진, V8 JavaScript 엔진을
 내장하고 있으며, Python LLM 기반 보안 에이전트와 gRPC 양방향 통신을 통해
 실시간 위협 분석을 수행합니다.
@@ -31,7 +31,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         Ordinal Browser                             │
+│                         OrdinalV8                             │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌───────────────────────────────────────────────────────────────┐  │
@@ -429,7 +429,7 @@ C++ Browser Core                    Python LLM Agent
 brew install cmake qt@6 openssl curl grpc protobuf
 
 # 빌드 디렉토리 생성
-cd ~/Desktop/ordinal-browser
+cd ~/Desktop/ordinalv8
 mkdir -p build && cd build
 
 # CMake 설정
@@ -467,7 +467,7 @@ python -m grpc_tools.protoc \
 ## 8. 디렉토리 구조
 
 ```
-ordinal-browser/
+ordinalv8/
 ├── CMakeLists.txt                  # 루트 CMake 빌드 설정
 ├── README.md                       # 프로젝트 README
 ├── .gitignore

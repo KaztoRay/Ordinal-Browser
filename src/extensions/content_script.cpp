@@ -422,7 +422,7 @@ std::string ContentScript::generateInjectionCode() const {
     // IIFE(즉시 실행 함수)로 격리된 스코프 생성
     code << "(function() {\n";
     code << "  'use strict';\n";
-    code << "  // === Ordinal Browser Extension: " << extension_id_ << " ===\n";
+    code << "  // === OrdinalV8 Extension: " << extension_id_ << " ===\n";
     code << "  // World ID: " << world_id_ << "\n";
     code << "  // Run At: " << runAtString() << "\n\n";
 
