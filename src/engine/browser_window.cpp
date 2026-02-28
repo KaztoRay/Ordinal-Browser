@@ -544,7 +544,10 @@ void BrowserWindow::onRestoreSession()
     }
 
     for (const auto& tab : session.tabs) {
-        createTab(tab.url);
+        QUrl url = tab.url;
+        if (url.scheme() == "ordinal" || url.isEmpty())
+            url = QUrl("https://www.google.com");
+        createTab(url);
     }
 
     if (session.activeTabIndex >= 0 && session.activeTabIndex < m_tabWidget->count()) {
