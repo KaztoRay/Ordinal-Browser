@@ -41,6 +41,10 @@ void installSignalHandlers() {
 
 int main(int argc, char* argv[])
 {
+    // Chromium 플래그 설정 (Google OAuth 호환)
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", 
+            "--disable-features=AutofillServerCommunication "            "--enable-features=NetworkService");
+
     // Qt WebEngine 초기화 (QApplication 생성 전에 호출)
     QtWebEngineQuick::initialize();
 

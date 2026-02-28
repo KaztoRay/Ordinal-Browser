@@ -1,3 +1,4 @@
+#include <QWebEngineNewWindowRequest>
 #include "llm_assistant.h"
 #include <QDir>
 #include <QStandardPaths>
@@ -24,9 +25,10 @@ LLMAssistant::LLMAssistant(QWidget* parent)
 
     // 보안 설정
     m_profile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+    // Google OAuth 호환 User-Agent (최신 Chrome과 동일)
     m_profile->setHttpUserAgent(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
 
     setupUI();
     setFixedWidth(420);
@@ -95,6 +97,23 @@ void LLMAssistant::setupUI()
     settings->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
     settings->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
     settings->setAttribute(QWebEngineSettings::PluginsEnabled, true);
+    settings->setAttribute(QWebEngineSettings::AllowRunningInsecureContent, false);
+    settings->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+
+    // Google OAuth 팝업 → 같은 웹뷰에서 열기
+    connect(m_webView->page(), &QWebEnginePage::newWindowRequested, this,
+            [this](QWebEngineNewWindowRequest &request) {
+        m_webView->setUrl(request.requestedUrl());
+    });
+
+    // URL 변경 감지 (OAuth 콜백 처리)
+    connect(m_webView, &QWebEngineView::urlChanged, this, [this](const QUrl& url) {
+        QString host = url.host();
+        m_titleLabel->setText(host.contains("chatgpt") ? "🤖 ChatGPT" : 
+                             host.contains("google") ? "🔑 Google 로그인" :
+                             host.contains("apple") ? "🍎 Apple 로그인" :
+                             "🤖 ChatGPT");
+    });
 
     m_mainLayout->addWidget(m_webView, 1);
 
