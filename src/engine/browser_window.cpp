@@ -689,53 +689,52 @@ void BrowserWindow::setupMenuBar()
 {
     // 파일 메뉴
     auto* fileMenu = menuBar()->addMenu("파일(&F)");
-    fileMenu->addAction("새 탭", this, &BrowserWindow::onNewTab, QKeySequence::AddTab);
-    fileMenu->addAction("새 창", this, &BrowserWindow::onNewWindow, QKeySequence("Ctrl+Shift+N"));
+    fileMenu->addAction("새 탭", QKeySequence::AddTab, this, &BrowserWindow::onNewTab);
+    fileMenu->addAction("새 창", QKeySequence("Ctrl+Shift+N"), this, &BrowserWindow::onNewWindow);
     fileMenu->addSeparator();
-    fileMenu->addAction("탭 닫기", this, &BrowserWindow::onCloseTab, QKeySequence::Close);
+    fileMenu->addAction("탭 닫기", QKeySequence::Close, this, &BrowserWindow::onCloseTab);
     fileMenu->addSeparator();
-    fileMenu->addAction("종료", this, &QWidget::close, QKeySequence::Quit);
+    fileMenu->addAction("종료", QKeySequence::Quit, this, &QWidget::close);
 
     // 편집 메뉴
     auto* editMenu = menuBar()->addMenu("편집(&E)");
-    editMenu->addAction("페이지에서 찾기", this, &BrowserWindow::onFindInPage, QKeySequence::Find);
+    editMenu->addAction("페이지에서 찾기", QKeySequence::Find, this, &BrowserWindow::onFindInPage);
     editMenu->addSeparator();
-    editMenu->addAction("소스 보기", this, &BrowserWindow::onViewSource, QKeySequence("Ctrl+U"));
+    editMenu->addAction("소스 보기", QKeySequence("Ctrl+U"), this, &BrowserWindow::onViewSource);
 
     // 보기 메뉴
     auto* viewMenu = menuBar()->addMenu("보기(&V)");
-    viewMenu->addAction("확대", this, &BrowserWindow::onZoomIn, QKeySequence::ZoomIn);
-    viewMenu->addAction("축소", this, &BrowserWindow::onZoomOut, QKeySequence::ZoomOut);
-    viewMenu->addAction("원래 크기", this, &BrowserWindow::onZoomReset, QKeySequence("Ctrl+0"));
+    viewMenu->addAction("확대", QKeySequence::ZoomIn, this, &BrowserWindow::onZoomIn);
+    viewMenu->addAction("축소", QKeySequence::ZoomOut, this, &BrowserWindow::onZoomOut);
+    viewMenu->addAction("원래 크기", QKeySequence("Ctrl+0"), this, &BrowserWindow::onZoomReset);
     viewMenu->addSeparator();
-    viewMenu->addAction("전체 화면", this, &BrowserWindow::onToggleFullScreen, QKeySequence("F11"));
+    viewMenu->addAction("전체 화면", QKeySequence("F11"), this, &BrowserWindow::onToggleFullScreen);
     viewMenu->addSeparator();
-    viewMenu->addAction("개발자 도구", this, &BrowserWindow::onOpenDevTools, QKeySequence("F12"));
+    viewMenu->addAction("개발자 도구", QKeySequence("F12"), this, &BrowserWindow::onOpenDevTools);
 
     // 북마크 메뉴
     auto* bookmarkMenu = menuBar()->addMenu("북마크(&B)");
-    bookmarkMenu->addAction("북마크 추가/제거", this, &BrowserWindow::onToggleBookmark, QKeySequence("Ctrl+D"));
-    bookmarkMenu->addAction("북마크 관리", this, &BrowserWindow::onShowBookmarks, QKeySequence("Ctrl+Shift+B"));
+    bookmarkMenu->addAction("북마크 추가/제거", QKeySequence("Ctrl+D"), this, &BrowserWindow::onToggleBookmark);
+    bookmarkMenu->addAction("북마크 관리", QKeySequence("Ctrl+Shift+B"), this, &BrowserWindow::onShowBookmarks);
 
     // 히스토리 메뉴
     auto* historyMenu = menuBar()->addMenu("기록(&I)");
-    historyMenu->addAction("방문 기록", this, &BrowserWindow::onShowHistory, QKeySequence("Ctrl+H"));
+    historyMenu->addAction("방문 기록", QKeySequence("Ctrl+H"), this, &BrowserWindow::onShowHistory);
 
     // 보안 메뉴
     auto* securityMenu = menuBar()->addMenu("보안(&S)");
     securityMenu->addAction("광고 차단 토글", this, &BrowserWindow::onToggleAdBlock);
     securityMenu->addSeparator();
-    securityMenu->addAction("브라우징 데이터 삭제", this, &BrowserWindow::onClearData,
-                            QKeySequence("Ctrl+Shift+Delete"));
+    securityMenu->addAction("브라우징 데이터 삭제", QKeySequence("Ctrl+Shift+Delete"), this, &BrowserWindow::onClearData);
 
     // 도구 메뉴
     auto* toolsMenu = menuBar()->addMenu("도구(&T)");
-    toolsMenu->addAction("스크린샷", this, &BrowserWindow::onScreenshot, QKeySequence("Ctrl+Shift+S"));
-    toolsMenu->addAction("PDF로 저장", this, &BrowserWindow::onPrintToPdf, QKeySequence("Ctrl+Shift+P"));
+    toolsMenu->addAction("스크린샷", QKeySequence("Ctrl+Shift+S"), this, &BrowserWindow::onScreenshot);
+    toolsMenu->addAction("PDF로 저장", QKeySequence("Ctrl+Shift+P"), this, &BrowserWindow::onPrintToPdf);
     toolsMenu->addSeparator();
     toolsMenu->addAction("비밀번호 관리", this, &BrowserWindow::onShowPasswords);
     toolsMenu->addSeparator();
-    toolsMenu->addAction("설정", this, &BrowserWindow::onOpenSettings, QKeySequence("Ctrl+,"));
+    toolsMenu->addAction("설정", QKeySequence("Ctrl+,"), this, &BrowserWindow::onOpenSettings);
 
     // 도움말 메뉴
     auto* helpMenu = menuBar()->addMenu("도움말(&H)");
