@@ -110,16 +110,7 @@ open ordinalv8.app
 
 ## AI 어시스턴트 설정
 
-기본적으로 Ollama (로컬 LLM)를 사용합니다:
-
-```bash
-# Ollama 설치 및 모델 다운로드
-brew install ollama
-ollama serve
-ollama pull llama3.2
-```
-
-설정에서 OpenAI, Anthropic, 또는 커스텀 API로 전환할 수 있습니다.
+기본적으로 ChatGPT LLM을 사용합니다:
 
 ## 단축키
 
