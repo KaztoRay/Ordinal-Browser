@@ -7,13 +7,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QSettings>
-#include <QComboBox>
+#include <QProcess>
 
 namespace Ordinal {
 namespace Engine {
@@ -41,41 +36,37 @@ public slots:
 
 private slots:
     void onSendMessage();
-    void onApiResponse(QNetworkReply* reply);
     void onQuickAction(const QString& action);
 
 private:
     void setupUI();
-    void setupQuickActions();
     void addMessage(const QString& sender, const QString& text, bool isUser = false);
-    void sendToLLM(const QString& prompt, const QString& systemPrompt = "");
+    void sendToOpenAI(const QString& prompt, const QString& systemPrompt = "");
     void processCommand(const QString& input);
-    QString buildSystemPrompt() const;
+    void showApiKeyDialog();
     void loadSettings();
     void saveSettings();
-    void streamResponse(const QString& text);
 
+    // UI
     QVBoxLayout* m_mainLayout = nullptr;
     QLabel* m_titleLabel = nullptr;
     QTextEdit* m_chatDisplay = nullptr;
     QLineEdit* m_inputField = nullptr;
     QPushButton* m_sendBtn = nullptr;
     QWidget* m_quickActionsBar = nullptr;
-    QComboBox* m_modelSelector = nullptr;
+    QWidget* m_loginPanel = nullptr;
+    QLineEdit* m_apiKeyInput = nullptr;
+    QWidget* m_chatPanel = nullptr;
 
-    QNetworkAccessManager* m_netManager = nullptr;
-
+    // 상태
     QString m_apiKey;
-    QString m_apiEndpoint;
-    QString m_modelName;
+    QString m_model;
     QString m_currentPageTitle;
     QString m_currentPageUrl;
     QString m_selectedText;
     QStringList m_conversationHistory;
     bool m_isVisible = false;
-
-    enum class Provider { OpenAI, Anthropic, Ollama, Custom };
-    Provider m_provider = Provider::Ollama;
+    bool m_isLoggedIn = false;
 };
 
 } // namespace Engine

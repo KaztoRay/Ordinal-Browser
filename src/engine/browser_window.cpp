@@ -696,6 +696,9 @@ void BrowserWindow::setupUI()
 
     // AI 어시스턴트 사이드바
     m_llmAssistant = new LLMAssistant(this);
+    m_llmAssistant->setVisible(true);
+    m_llmAssistant->setMinimumWidth(380);
+    m_llmAssistant->setMaximumWidth(380);
 
     // 메인 레이아웃 (탭 + AI 사이드바)
     auto* centralWidget = new QWidget(this);
